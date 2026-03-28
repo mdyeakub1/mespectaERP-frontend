@@ -1,0 +1,342 @@
+import { useEffect, useState } from "react";
+import {
+  Table,
+  Button,
+  Space,
+  message,
+  Card,
+  Modal,
+  Input,
+  Row,
+  Col,
+  Select,
+  Form,
+} from "antd";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  FilterOutlined,
+} from "@ant-design/icons";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import {
+  fetchProducts,
+  removeProduct,
+} from "../products.slice";
+import ProductDrawer from "../components/ProductForm";
+import api from "../../../services/api";
+import ProductDetailsDrawer from "../components/ProductDetailsDrawer";
+
+export default function ProductsPage() {
+  const dispatch = useAppDispatch();
+  const { data,totalCount, loading } = useAppSelector(
+    (state) => state.products
+  );
+
+  const [detailsOpen, setDetailsOpen] = useState(false);
+const [detailsId, setDetailsId] = useState<number | null>(null);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editingRecord, setEditingRecord] =
+    useState<any>(null);
+  const [deleteModalOpen, setDeleteModalOpen] =
+    useState(false);
+  const [selectedRecord, setSelectedRecord] =
+    useState<any>(null);
+
+  const [search, setSearch] = useState("");
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const [filters, setFilters] = useState<any>({});
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  const [categories, setCategories] = useState<any[]>([]);
+  const [genders, setGenders] = useState<any[]>([]);
+
+  const [form] = Form.useForm();
+
+  /* ================= FETCH PRODUCTS ================= */
+useEffect(() => {
+  dispatch(
+    fetchProducts({
+      search,
+      pageNumber,
+      pageSize,
+      ...filters,
+    })
+  );
+}, [dispatch, search, pageNumber, pageSize, filters]);
+
+  /* ================= LOAD FILTER DROPDOWNS ================= */
+  useEffect(() => {
+    if (filterOpen) {
+      loadDropdowns();
+    }
+  }, [filterOpen]);
+
+  const loadDropdowns = async () => {
+    try {
+      const [catRes, genRes] = await Promise.all([
+        api.get("/product-categories"),
+        api.get("/product-genders"),
+      ]);
+
+      const extract = (res: any) =>
+        res.data?.data?.items ?? res.data?.data ?? [];
+
+      setCategories(extract(catRes));
+      setGenders(extract(genRes));
+    } catch {
+      message.error("Failed to load filters");
+    }
+  };
+
+  /* ================= DELETE ================= */
+  const handleDelete = async () => {
+    try {
+     await dispatch(
+  removeProduct({
+    id: selectedRecord.productId,
+    params: {
+      search,
+      pageNumber,
+      pageSize,
+      ...filters,
+    },
+  })
+).unwrap();
+
+      message.success("Product deleted successfully");
+      setDeleteModalOpen(false);
+    } catch (error: any) {
+      message.error(error || "Delete failed");
+    }
+  };
+
+  const isFilterActive =
+    Object.keys(filters).length > 0;
+
+  /* ================= TABLE COLUMNS ================= */
+  const columns = [
+    { title: "Code", dataIndex: "productCode" },
+    { title: "Description", dataIndex: "description" },
+    { title: "Italy Price", dataIndex: "priceItaly" },
+    { title: "EU Price", dataIndex: "priceEU" },
+    { title: "Outside EU", dataIndex: "priceOutsideEU" },
+    { title: "Category", dataIndex: "categoryName" },
+    { title: "Gender", dataIndex: "genderName" },
+    {
+  title: "",
+  align: "right" as const,
+  render: (_: any, record: any) => (
+    <Space>
+      <Button
+        type="link"
+        onClick={() => {
+          setDetailsId(record.productId);
+          setDetailsOpen(true);
+        }}
+      >
+        Details
+      </Button>
+
+      <EditOutlined
+        style={{ color: "#1677ff", cursor: "pointer" }}
+        onClick={async () => {
+  const response = await api.get(
+    `/products/${record.productId}`
+  );
+
+  setEditingRecord(response.data.data);
+  setDrawerOpen(true);
+}}
+      />
+
+      <DeleteOutlined
+        style={{ color: "#ff4d4f", cursor: "pointer" }}
+        onClick={() => {
+          setSelectedRecord(record);
+          setDeleteModalOpen(true);
+        }}
+      />
+    </Space>
+  ),
+},
+  ];
+
+  return (
+    <Card>
+      {/* ================= TOP BAR ================= */}
+      <Row
+        justify="space-between"
+        align="middle"
+        style={{ marginBottom: 20 }}
+      >
+        <Col>
+          <Space>
+            <Input.Search
+              placeholder="Search by code or description"
+              style={{ width: 260 }}
+              allowClear
+              enterButton={<Button>Search</Button>}
+              onSearch={(value) => {
+                setPageNumber(1);
+                setSearch(value);
+              }}
+            />
+
+            <Button
+              icon={<FilterOutlined />}
+              onClick={() => setFilterOpen(true)}
+            >
+              Filter
+            </Button>
+
+            {isFilterActive && (
+              <Button
+                danger
+                onClick={() => {
+                  setFilters({});
+                  setPageNumber(1);
+                }}
+              >
+                Reset Filter
+              </Button>
+            )}
+          </Space>
+        </Col>
+
+        <Col>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingRecord(null);
+              setDrawerOpen(true);
+            }}
+          >
+            Add New Product
+          </Button>
+        </Col>
+      </Row>
+
+      {/* ================= TABLE ================= */}
+      <Table
+  rowKey="productId"
+  columns={columns}
+  dataSource={data}
+  loading={loading}
+  pagination={{
+    current: pageNumber,
+    pageSize: pageSize,
+    total: totalCount,
+    showSizeChanger: true,
+          hideOnSinglePage: true,
+    pageSizeOptions: ["10", "20", "50"],
+    showTotal: (total, range) =>
+      `${range[0]}-${range[1]} of ${total} records`,
+    onChange: (page, size) => {
+      setPageNumber(page);
+      setPageSize(size);
+    },
+  }}
+/>
+
+      {/* ================= DRAWER ================= */}
+      <ProductDrawer
+        open={drawerOpen}
+        initialData={editingRecord}
+        onClose={() => setDrawerOpen(false)}
+      />
+
+      <ProductDetailsDrawer
+  open={detailsOpen}
+  productId={detailsId}
+  onClose={() => setDetailsOpen(false)}
+/>
+
+      {/* ================= DELETE MODAL ================= */}
+      <Modal
+        title="Confirm Delete"
+        open={deleteModalOpen}
+        onOk={handleDelete}
+        onCancel={() => setDeleteModalOpen(false)}
+        okButtonProps={{ danger: true }}
+      >
+        Are you sure you want to delete{" "}
+        <strong>
+          {selectedRecord?.productCode}
+        </strong>
+        ?
+      </Modal>
+
+      {/* ================= FILTER MODAL ================= */}
+      <Modal
+        title="Filter Products"
+        open={filterOpen}
+        onCancel={() => setFilterOpen(false)}
+        footer={null}
+      >
+        <Form
+          layout="vertical"
+          form={form}
+          onFinish={(values) => {
+            setPageNumber(1);
+            setFilters({
+              categoryId: values.categoryId,
+              genderId: values.genderId,
+            });
+            setFilterOpen(false);
+          }}
+        >
+          <Form.Item
+            name="categoryId"
+            label="Category"
+          >
+            <Select
+              allowClear
+              options={categories.map((c) => ({
+                value: c.productCategoryId,
+                label: c.name,
+              }))}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="genderId"
+            label="Gender"
+          >
+            <Select
+              allowClear
+              options={genders.map((g) => ({
+                value: g.productGenderId,
+                label: g.name,
+              }))}
+            />
+          </Form.Item>
+
+          <Row justify="end" gutter={8}>
+            <Col>
+              <Button
+                onClick={() =>
+                  setFilterOpen(false)
+                }
+              >
+                Cancel
+              </Button>
+            </Col>
+            <Col>
+              <Button
+                type="primary"
+                htmlType="submit"
+              >
+                Apply Filter
+              </Button>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
+    </Card>
+  );
+}

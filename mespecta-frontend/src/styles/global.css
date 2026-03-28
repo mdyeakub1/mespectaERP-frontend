@@ -1,0 +1,243 @@
+/* ══════════════════════════════
+   LAYOUT — fill viewport height
+══════════════════════════════ */
+
+.ant-layout-content > .ant-card {
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+
+/* ══════════════════════════════
+   TABLE — Modern SaaS Style
+══════════════════════════════ */
+
+.ant-table-wrapper {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+.ant-table-container {
+  border-radius: 10px !important;
+  border: none !important;
+}
+
+/* Scrollable table body via CSS — single table, no split */
+.ant-table-content {
+  max-height: calc(100vh - 300px) !important;
+  overflow-y: auto !important;
+}
+
+/* Sticky header — works inside scrolling .ant-table-content */
+.ant-table-content thead > tr > th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 3 !important;
+  background: #f8fafc !important;
+  color: #64748b !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  padding: 12px 16px !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  border-right: none !important;
+}
+
+.ant-table-content thead > tr > th::before {
+  display: none !important;
+}
+
+/* Body rows */
+.ant-table-tbody > tr > td {
+  padding: 12px 16px !important;
+  font-size: 13.5px !important;
+  color: #374151 !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  border-right: none !important;
+  background: #fff !important;
+  transition: background 0.15s ease, border-left 0.15s ease !important;
+}
+
+/* Hover row — blue left accent */
+.ant-table-tbody > tr:hover > td {
+  background: #f0f7ff !important;
+}
+
+.ant-table-tbody > tr:hover > td:first-child {
+  border-left: 3px solid #1677ff !important;
+}
+
+.ant-table-tbody > tr > td:first-child {
+  border-left: 3px solid transparent !important;
+}
+
+/* Last row — no bottom border */
+.ant-table-tbody > tr:last-child > td {
+  border-bottom: none !important;
+}
+
+/* Modern scrollbar */
+.ant-table-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ant-table-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ant-table-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.ant-table-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+
+/* ══════════════════════════════
+   PAGINATION — Modern Style
+══════════════════════════════ */
+
+.ant-pagination {
+  display: flex !important;
+  align-items: center !important;
+  padding: 12px 4px 4px !important;
+  margin: 0 !important;
+}
+
+.ant-pagination-item {
+  border-radius: 6px !important;
+  border: 1px solid #e2e8f0 !important;
+  font-size: 13px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  line-height: 30px !important;
+}
+
+.ant-pagination-item a {
+  color: #374151 !important;
+}
+
+.ant-pagination-item:hover {
+  border-color: #1677ff !important;
+  background: #eff6ff !important;
+}
+
+.ant-pagination-item:hover a {
+  color: #1677ff !important;
+}
+
+.ant-pagination-item-active {
+  background: #1677ff !important;
+  border-color: #1677ff !important;
+}
+
+.ant-pagination-item-active a {
+  color: #fff !important;
+}
+
+.ant-pagination-prev .ant-pagination-item-link,
+.ant-pagination-next .ant-pagination-item-link {
+  border-radius: 6px !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #374151 !important;
+  height: 32px !important;
+  width: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.ant-pagination-prev:hover .ant-pagination-item-link,
+.ant-pagination-next:hover .ant-pagination-item-link {
+  border-color: #1677ff !important;
+  color: #1677ff !important;
+  background: #eff6ff !important;
+}
+
+.ant-pagination-total-text {
+  color: #64748b !important;
+  font-size: 13px !important;
+  margin-right: 8px !important;
+}
+
+.ant-select-selector {
+  border-radius: 6px !important;
+  font-size: 13px !important;
+}
+
+
+/* ══════════════════════════════
+   FORM — Modern Input Design
+══════════════════════════════ */
+
+/* Form item label */
+.ant-form-item-label > label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* Required asterisk */
+.ant-form-item-label > label.ant-form-item-required::before {
+  color: #f43f5e !important;
+}
+
+/* DatePicker full width */
+.ant-picker {
+  width: 100% !important;
+}
+
+/* Textarea */
+.ant-input[type="textarea"],
+textarea.ant-input {
+  border-radius: 8px !important;
+  resize: vertical !important;
+}
+
+
+/* Switch */
+.ant-switch {
+  background: #cbd5e1 !important;
+}
+
+.ant-switch-checked {
+  background: #1677ff !important;
+}
+
+/* Form item spacing */
+.ant-form-item {
+  margin-bottom: 18px !important;
+}
+
+/* Modal & Drawer form container */
+.ant-modal-body .ant-form,
+.ant-drawer-body .ant-form {
+  padding-top: 4px !important;
+}
+
+/* Error state */
+.ant-form-item-has-error .ant-input,
+.ant-form-item-has-error .ant-input-affix-wrapper,
+.ant-form-item-has-error .ant-input-number,
+.ant-form-item-has-error .ant-select .ant-select-selector,
+.ant-form-item-has-error .ant-picker {
+  border-color: #f43f5e !important;
+  background: #fff5f7 !important;
+}
+
+.ant-form-item-has-error .ant-input:focus,
+.ant-form-item-has-error .ant-input-affix-wrapper-focused,
+.ant-form-item-has-error .ant-select-focused .ant-select-selector,
+.ant-form-item-has-error .ant-picker-focused {
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.1) !important;
+}
+
+.ant-form-item-explain-error {
+  font-size: 11.5px !important;
+  color: #f43f5e !important;
+  margin-top: 3px !important;
+}
