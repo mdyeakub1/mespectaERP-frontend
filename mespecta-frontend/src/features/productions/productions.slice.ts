@@ -4,6 +4,7 @@ import {
   startProduction,
   type ProductionFilter,
 } from "./productions.api";
+import { extractError } from "../../utils/extractError";
 import type { Production } from "./productions.types";
 
 interface State {
@@ -31,7 +32,7 @@ export const fetchProductions = createAsyncThunk(
     try {
       return await getProductions(params);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(extractError(error, "Failed to fetch productions"));
     }
   }
 );
@@ -42,7 +43,7 @@ export const createProduction = createAsyncThunk(
     try {
       return await startProduction(payload);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data);
+      return rejectWithValue(extractError(error, "Failed to start production"));
     }
   }
 );

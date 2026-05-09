@@ -1,10 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  getSuppliers,
-  createSupplier,
-  updateSupplier,
-  deleteSupplier,
-} from "./suppliers.api";
+import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from "./suppliers.api";
+import { extractError } from "../../utils/extractError";
 import type { Supplier } from "./suppliers.types";
 
 interface SuppliersState {
@@ -23,22 +19,17 @@ const initialState: SuppliersState = {
   loading: false,
 };
 
-/* ================= FETCH ================= */
 export const fetchSuppliers = createAsyncThunk(
   "suppliers/fetch",
   async (params: any = {}, { rejectWithValue }) => {
     try {
       return await getSuppliers(params);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message ||
-        "Failed to fetch suppliers"
-      );
+      return rejectWithValue(extractError(error, "Failed to fetch suppliers"));
     }
   }
 );
 
-/* ================= ADD ================= */
 export const addSupplier = createAsyncThunk(
   "suppliers/add",
   async (data: any, { rejectWithValue }) => {
@@ -46,34 +37,23 @@ export const addSupplier = createAsyncThunk(
       await createSupplier(data);
       return await getSuppliers();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message ||
-        "Create failed"
-      );
+      return rejectWithValue(extractError(error, "Failed to create supplier"));
     }
   }
 );
 
-/* ================= EDIT ================= */
 export const editSupplier = createAsyncThunk(
   "suppliers/edit",
-  async (
-    { id, data }: { id: number; data: any },
-    { rejectWithValue }
-  ) => {
+  async ({ id, data }: { id: number; data: any }, { rejectWithValue }) => {
     try {
       await updateSupplier(id, data);
       return await getSuppliers();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message ||
-        "Update failed"
-      );
+      return rejectWithValue(extractError(error, "Failed to update supplier"));
     }
   }
 );
 
-/* ================= DELETE ================= */
 export const removeSupplier = createAsyncThunk(
   "suppliers/delete",
   async (id: number, { rejectWithValue }) => {
@@ -81,10 +61,7 @@ export const removeSupplier = createAsyncThunk(
       await deleteSupplier(id);
       return await getSuppliers();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message ||
-        "Delete failed"
-      );
+      return rejectWithValue(extractError(error, "Failed to delete supplier"));
     }
   }
 );
@@ -95,9 +72,7 @@ const suppliersSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchSuppliers.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(fetchSuppliers.pending, (state) => { state.loading = true; })
       .addCase(fetchSuppliers.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload.items;
@@ -105,19 +80,15 @@ const suppliersSlice = createSlice({
         state.pageNumber = action.payload.pageNumber;
         state.pageSize = action.payload.pageSize;
       })
-      .addCase(fetchSuppliers.rejected, (state) => {
-        state.loading = false;
-      })
+      .addCase(fetchSuppliers.rejected, (state) => { state.loading = false; })
 
       .addCase(addSupplier.fulfilled, (state, action) => {
         state.items = action.payload.items;
         state.totalCount = action.payload.totalCount;
       })
-
       .addCase(editSupplier.fulfilled, (state, action) => {
         state.items = action.payload.items;
       })
-
       .addCase(removeSupplier.fulfilled, (state, action) => {
         state.items = action.payload.items;
         state.totalCount = action.payload.totalCount;

@@ -2,13 +2,11 @@ import {
   Layout,
   Avatar,
   Typography,
-  Button,
   Dropdown,
   Space,
 } from "antd";
 import {
   UserOutlined,
-  LogoutOutlined,
 } from "@ant-design/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";

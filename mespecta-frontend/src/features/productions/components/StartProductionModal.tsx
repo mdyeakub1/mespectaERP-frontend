@@ -141,7 +141,7 @@ export default function StartProductionModal({
       onCancel={onClose}
       onOk={handleSubmit}
       width={1000}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form layout="vertical" form={form}>
         {/* Inbound Search */}

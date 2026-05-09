@@ -11,7 +11,7 @@ import {
   Select,
   Space,
 } from "antd";
-import { FilterOutlined, PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined } from "@ant-design/icons";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { fetchSuppliers } from "../suppliers.slice";
 import SupplierModal from "../components/SupplierModal";

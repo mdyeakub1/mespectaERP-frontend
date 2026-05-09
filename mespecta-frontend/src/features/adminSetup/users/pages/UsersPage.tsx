@@ -199,7 +199,7 @@ export default function UsersPage() {
         onCancel={() => setModalOpen(false)}
         okText={editingRecord ? "Update" : "Create"}
         confirmLoading={mutating}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form layout="vertical" form={form}>
           <Form.Item label="Full Name" name="fullName" rules={[{ required: true }]}>

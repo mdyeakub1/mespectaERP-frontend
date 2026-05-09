@@ -4,17 +4,14 @@ import {
   Card,
   Tag,
   Button,
-  Typography,
   Input,
   Row,
   Col,
-  Space,
 } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { fetchCraftsmen } from "../craftsmen.slice";
 
-const { Title } = Typography;
 
 export default function CraftsmenPage() {
   const dispatch = useAppDispatch();

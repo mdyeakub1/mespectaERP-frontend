@@ -68,7 +68,7 @@ export default function SupplierModal({
       onOk={handleSubmit}
       confirmLoading={submitting}
       width={600}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form layout="vertical" form={form}>
         <Row gutter={16}>

@@ -1,10 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  getUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "./users.api";
+import { getUsers, createUser, updateUser, deleteUser } from "./users.api";
+import { extractError } from "../../../utils/extractError";
 import type { UserFilter } from "./users.api";
 
 interface State {
@@ -23,7 +19,13 @@ const initialState: State = {
 
 export const fetchUsers = createAsyncThunk(
   "users/fetch",
-  async (filter: UserFilter = {}) => await getUsers(filter)
+  async (filter: UserFilter = {}, { rejectWithValue }) => {
+    try {
+      return await getUsers(filter);
+    } catch (error: any) {
+      return rejectWithValue(extractError(error, "Failed to fetch users"));
+    }
+  }
 );
 
 export const addUser = createAsyncThunk(
@@ -32,7 +34,7 @@ export const addUser = createAsyncThunk(
     try {
       return await createUser(data);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Failed to create user");
+      return rejectWithValue(extractError(error, "Failed to create user"));
     }
   }
 );
@@ -43,7 +45,7 @@ export const editUser = createAsyncThunk(
     try {
       return await updateUser(id, data);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Failed to update user");
+      return rejectWithValue(extractError(error, "Failed to update user"));
     }
   }
 );
@@ -54,7 +56,7 @@ export const removeUser = createAsyncThunk(
     try {
       return await deleteUser(id);
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || "Failed to delete user");
+      return rejectWithValue(extractError(error, "Failed to delete user"));
     }
   }
 );
@@ -65,23 +67,22 @@ const slice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchUsers.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(fetchUsers.pending, (state) => { state.loading = true; })
       .addCase(fetchUsers.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload.items ?? action.payload ?? [];
         state.totalCount = action.payload.totalCount ?? 0;
       })
-      .addCase(fetchUsers.rejected, (state) => {
-        state.loading = false;
-      })
+      .addCase(fetchUsers.rejected, (state) => { state.loading = false; })
+
       .addCase(addUser.pending, (state) => { state.mutating = true; })
       .addCase(addUser.fulfilled, (state) => { state.mutating = false; })
       .addCase(addUser.rejected, (state) => { state.mutating = false; })
+
       .addCase(editUser.pending, (state) => { state.mutating = true; })
       .addCase(editUser.fulfilled, (state) => { state.mutating = false; })
       .addCase(editUser.rejected, (state) => { state.mutating = false; })
+
       .addCase(removeUser.pending, (state) => { state.mutating = true; })
       .addCase(removeUser.fulfilled, (state) => { state.mutating = false; })
       .addCase(removeUser.rejected, (state) => { state.mutating = false; });

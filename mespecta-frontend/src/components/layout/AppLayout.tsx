@@ -9,9 +9,9 @@ const AppLayout = () => {
   return (
     <Layout style={{ height: "100vh", overflow: "hidden" }}>
       <Sidebar />
-      <Layout style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      <Layout style={{ display: "flex", flexDirection: "column", overflow: "hidden", flex: 1, minWidth: 0 }}>
         <HeaderBar />
-        <Content style={{ margin: 16, display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+        <Content style={{ margin: 16, flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden" }}>
           <Outlet />
         </Content>
       </Layout>

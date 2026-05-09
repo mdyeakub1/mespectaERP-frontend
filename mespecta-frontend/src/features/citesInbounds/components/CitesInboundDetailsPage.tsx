@@ -21,6 +21,8 @@ import {
   PaperClipOutlined,
   CalendarOutlined,
   NumberOutlined,
+  EyeOutlined,
+  DownloadOutlined,
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../services/api";
@@ -57,6 +59,73 @@ const formatHours = (hours: number) => {
   const m = Math.round(((hours ?? 0) % 1) * 60);
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
+
+/* ── Attachments Tab ─────────────────────────────────────────── */
+function AttachmentsTab({ attachments }: { attachments: any[] }) {
+  const columns = [
+    {
+      title: "File Name",
+      dataIndex: "fileName",
+      render: (val: string) => (
+        <Space>
+          <PaperClipOutlined style={{ color: "#1677ff" }} />
+          <Text style={{ fontSize: 13 }}>{val}</Text>
+        </Space>
+      ),
+    },
+    {
+      title: "Type",
+      dataIndex: "contentType",
+      render: (val: string) => <Tag>{val}</Tag>,
+    },
+    {
+      title: "Size",
+      dataIndex: "fileSize",
+      render: (val: number) =>
+        val >= 1024 * 1024
+          ? `${(val / (1024 * 1024)).toFixed(2)} MB`
+          : `${(val / 1024).toFixed(1)} KB`,
+    },
+    {
+      title: "Uploaded At",
+      dataIndex: "uploadedAt",
+      render: (val: string) =>
+        new Date(val).toLocaleDateString("en-GB", {
+          day: "2-digit", month: "short", year: "numeric",
+        }),
+    },
+    {
+      title: "",
+      align: "right" as const,
+      render: (_: any, record: any) => (
+        <Space>
+          {record.viewLink && (
+            <Button size="small" icon={<EyeOutlined />}
+              onClick={() => window.open(record.viewLink, "_blank")}>
+              View
+            </Button>
+          )}
+          {record.downloadLink && (
+            <Button size="small" icon={<DownloadOutlined />}
+              onClick={() => window.open(record.downloadLink, "_blank")}>
+              Download
+            </Button>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <Table
+      rowKey="citesInboundAttachmentId"
+      dataSource={attachments}
+      pagination={false}
+      columns={columns}
+      locale={{ emptyText: "No attachments yet" }}
+    />
+  );
+}
 
 export default function CitesInboundDetailsPage() {
   const { id } = useParams();
@@ -254,26 +323,7 @@ export default function CitesInboundDetailsPage() {
                   key: "3",
                   label: <Space><PaperClipOutlined />Attachments</Space>,
                   children: (
-                    <Table
-                      rowKey="citesInboundAttachmentId"
-                      dataSource={data.attachments || []}
-                      pagination={false}
-                      style={{ marginTop: 8 }}
-                      columns={[
-                        { title: "File Name", dataIndex: "fileName" },
-                        { title: "Type", dataIndex: "contentType" },
-                        {
-                          title: "Size (KB)",
-                          dataIndex: "fileSize",
-                          render: (val: number) => (val / 1024).toFixed(2),
-                        },
-                        {
-                          title: "Uploaded At",
-                          dataIndex: "uploadedAt",
-                          render: (val: string) => new Date(val).toLocaleDateString(),
-                        },
-                      ]}
-                    />
+                    <AttachmentsTab attachments={data.attachments || []} />
                   ),
                 },
               ]}

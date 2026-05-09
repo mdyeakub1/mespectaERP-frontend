@@ -93,7 +93,7 @@ const LoginPage = () => {
           {errorMsg && (
             <Alert
               type="error"
-              message={errorMsg}
+              title={errorMsg}
               showIcon
               style={{ marginBottom: 16, borderRadius: 8 }}
               closable

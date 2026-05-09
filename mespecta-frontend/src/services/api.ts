@@ -1,8 +1,10 @@
 import axios from "axios";
-import { message } from "antd";
+import { showError } from "../utils/message";
 import { refreshTokenApi } from "../features/auth/auth.api";
+import { store } from "../app/store";
+import { clearAuth } from "../features/auth/auth.slice";
 
-const BASE_URL = "https://localhost:7261/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 const api = axios.create({ baseURL: BASE_URL });
 
@@ -39,7 +41,7 @@ api.interceptors.response.use(
     if (isFailure) {
       const msg = response.data.Message || response.data.message || "Operation failed";
       if (!isAuthEndpoint) {
-        message.error(msg);
+        showError(msg);
       }
       return Promise.reject(new Error(msg));
     }
@@ -57,8 +59,8 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem("refreshToken");
 
       if (!refreshToken) {
-        localStorage.clear();
-        window.location.href = "/login";
+        store.dispatch(clearAuth());
+        window.location.replace("/#/login");
         return Promise.reject(error);
       }
 
@@ -78,6 +80,8 @@ api.interceptors.response.use(
       try {
         const data = await refreshTokenApi(refreshToken);
 
+        if (!data?.token) throw new Error("No token in refresh response");
+
         localStorage.setItem("token", data.token);
         localStorage.setItem("refreshToken", data.refreshToken);
 
@@ -88,8 +92,8 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError, null);
-        localStorage.clear();
-        window.location.href = "/login";
+        store.dispatch(clearAuth());
+        window.location.replace("/#/login");
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -100,9 +104,9 @@ api.interceptors.response.use(
     if (!isAuthEndpoint) {
       const msg = error.response?.data?.Message || error.response?.data?.message;
       if (msg) {
-        message.error(msg);
+        showError(msg);
       } else if (error.response?.status !== 401) {
-        message.error("Something went wrong");
+        showError("Something went wrong");
       }
     }
 

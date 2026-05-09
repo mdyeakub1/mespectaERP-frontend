@@ -156,7 +156,7 @@ export default function AddCitesInboundModal({
             onOk={handleSubmit}
             width={800}
             style={{ top: 20 }}
-            destroyOnClose
+            destroyOnHidden
         >
             {loadingDropdowns ? (
                 <Spin />

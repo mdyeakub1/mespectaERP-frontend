@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "../features/auth/LoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import PrivateRoute from "./PrivateRoute";
@@ -32,7 +32,7 @@ import CraftsmanDetailsPage from "../features/craftsmen/pages/CraftsmanDetailsPa
 
 export default function AppRoutes() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
 
         <Route path="/login" element={<LoginPage />} />
@@ -80,11 +80,12 @@ export default function AppRoutes() {
               <Route path="sources" element={<SourcesPage />} />
               <Route path="unit-of-measures" element={<UnitOfMeasuresPage />} />
             </Route>
+
           </Route>
 
         </Route>
 
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }

@@ -20,69 +20,39 @@ const SectionLabel = ({ children }: { children: string }) => (
   </div>
 );
 
-const AddressBlock = ({ prefix }: { prefix: 0 | 1 }) => (
-  <>
-    <Form.Item name={["addresses", prefix, "addressType"]} noStyle>
-      <Input type="hidden" />
-    </Form.Item>
-    <Row gutter={12}>
-      <Col span={24}>
-        <Form.Item label="Address Line" name={["addresses", prefix, "addressLine"]} style={{ marginBottom: 8 }}>
-          <Input placeholder="Street / building" />
-        </Form.Item>
-      </Col>
-      <Col span={6}>
-        <Form.Item label="City" name={["addresses", prefix, "city"]} style={{ marginBottom: 0 }}>
-          <Input />
-        </Form.Item>
-      </Col>
-      <Col span={6}>
-        <Form.Item label="State" name={["addresses", prefix, "state"]} style={{ marginBottom: 0 }}>
-          <Input />
-        </Form.Item>
-      </Col>
-      <Col span={6}>
-        <Form.Item label="Postal Code" name={["addresses", prefix, "postalCode"]} style={{ marginBottom: 0 }}>
-          <Input />
-        </Form.Item>
-      </Col>
-      <Col span={6}>
-        <Form.Item label="Country" name={["addresses", prefix, "country"]} style={{ marginBottom: 0 }}>
-          <Input />
-        </Form.Item>
-      </Col>
-    </Row>
-  </>
-);
-
 export default function CustomerModal({ open, onClose, initialData }: Props) {
   const [form] = Form.useForm();
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (initialData) {
-      const addresses = [
-        initialData.addresses?.find((a: any) => a.addressType?.toLowerCase() === "shipping") ?? { addressType: "shipping" },
-        initialData.addresses?.find((a: any) => a.addressType?.toLowerCase() === "billing") ?? { addressType: "billing" },
-      ];
-      form.setFieldsValue({ ...initialData, addresses });
+      form.setFieldsValue({
+        customerName: initialData.customerName,
+        email: initialData.email,
+        phone: initialData.phone,
+        shippingAddress: initialData.shippingAddress ?? "",
+        billingAddress: initialData.billingAddress ?? "",
+      });
     } else {
       form.resetFields();
-      form.setFieldsValue({
-        addresses: [
-          { addressType: "shipping" },
-          { addressType: "billing" },
-        ],
-      });
     }
   }, [initialData, open]);
 
   const handleSubmit = async () => {
     const values = await form.validateFields();
+
+    const payload = {
+      customerName: values.customerName,
+      email: values.email,
+      phone: values.phone,
+      shippingAddress: values.shippingAddress ?? "",
+      billingAddress: values.billingAddress ?? "",
+    };
+
     if (initialData) {
-      await dispatch(editCustomer({ id: initialData.customerId, data: values })).unwrap();
+      await dispatch(editCustomer({ id: initialData.customerId, data: payload })).unwrap();
     } else {
-      await dispatch(addCustomer(values)).unwrap();
+      await dispatch(addCustomer(payload)).unwrap();
     }
     onClose();
   };
@@ -93,35 +63,37 @@ export default function CustomerModal({ open, onClose, initialData }: Props) {
       open={open}
       onCancel={onClose}
       onOk={handleSubmit}
-      width={680}
-      destroyOnClose
+      width={560}
+      destroyOnHidden
     >
-      <Form layout="vertical" form={form} size="middle">
+      <Form layout="vertical" form={form} style={{ marginTop: 8 }}>
 
         <SectionLabel>Basic Information</SectionLabel>
+        <Form.Item label="Customer Name" name="customerName" rules={[{ required: true }]} style={{ marginBottom: 8 }}>
+          <Input />
+        </Form.Item>
         <Row gutter={12}>
-          <Col span={24}>
-            <Form.Item label="Customer Name" name="customerName" rules={[{ required: true }]} style={{ marginBottom: 8 }}>
+          <Col span={12}>
+            <Form.Item label="Email" name="email" rules={[{ type: "email" }]} style={{ marginBottom: 8 }}>
               <Input />
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item label="Email" name="email" rules={[{ type: "email" }]} style={{ marginBottom: 0 }}>
-              <Input />
-            </Form.Item>
-          </Col>
-          <Col span={12}>
-            <Form.Item label="Phone" name="phone" style={{ marginBottom: 0 }}>
+            <Form.Item label="Phone" name="phone" style={{ marginBottom: 8 }}>
               <Input />
             </Form.Item>
           </Col>
         </Row>
 
         <SectionLabel>Shipping Address</SectionLabel>
-        <AddressBlock prefix={0} />
+        <Form.Item name="shippingAddress" style={{ marginBottom: 0 }}>
+          <Input.TextArea rows={2} placeholder="Enter shipping address" />
+        </Form.Item>
 
         <SectionLabel>Billing Address</SectionLabel>
-        <AddressBlock prefix={1} />
+        <Form.Item name="billingAddress" style={{ marginBottom: 0 }}>
+          <Input.TextArea rows={2} placeholder="Enter billing address" />
+        </Form.Item>
 
       </Form>
     </Modal>

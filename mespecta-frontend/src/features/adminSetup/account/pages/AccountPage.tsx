@@ -190,7 +190,7 @@ export default function AccountPage() {
         onOk={handleChangePassword}
         confirmLoading={submitting}
         okText="Update Password"
-        destroyOnClose
+        destroyOnHidden
       >
         <Form layout="vertical" form={form} style={{ marginTop: 8 }}>
           <Form.Item

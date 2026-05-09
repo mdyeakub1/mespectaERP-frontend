@@ -114,7 +114,7 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
       width={600}
       open={open}
       onClose={onClose}
-      destroyOnClose
+      destroyOnHidden
       footer={
         <Row justify="end" gutter={12}>
           <Col>

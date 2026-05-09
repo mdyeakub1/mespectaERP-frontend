@@ -1,10 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  getMaterials,
-  createMaterial,
-  updateMaterial,
-  deleteMaterial,
-} from "./materials.api";
+import { getMaterials, createMaterial, updateMaterial, deleteMaterial } from "./materials.api";
+import { extractError } from "../../utils/extractError";
 import type { Material } from "./materials.types";
 
 interface MaterialsState {
@@ -23,22 +19,17 @@ const initialState: MaterialsState = {
   loading: false,
 };
 
-/* ================= FETCH ================= */
 export const fetchMaterials = createAsyncThunk(
   "materials/fetchAll",
   async (params: any = {}, { rejectWithValue }) => {
     try {
       return await getMaterials(params);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message ||
-        "Failed to fetch materials"
-      );
+      return rejectWithValue(extractError(error, "Failed to fetch materials"));
     }
   }
 );
 
-/* ================= ADD ================= */
 export const addMaterial = createAsyncThunk(
   "materials/add",
   async (data: any, { rejectWithValue }) => {
@@ -46,32 +37,23 @@ export const addMaterial = createAsyncThunk(
       await createMaterial(data);
       return await getMaterials();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Something went wrong"
-      );
+      return rejectWithValue(extractError(error, "Failed to create material"));
     }
   }
 );
 
-/* ================= EDIT ================= */
 export const editMaterial = createAsyncThunk(
   "materials/edit",
-  async (
-    { id, data }: { id: number; data: any },
-    { rejectWithValue }
-  ) => {
+  async ({ id, data }: { id: number; data: any }, { rejectWithValue }) => {
     try {
       await updateMaterial(id, data);
       return await getMaterials();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Something went wrong"
-      );
+      return rejectWithValue(extractError(error, "Failed to update material"));
     }
   }
 );
 
-/* ================= DELETE ================= */
 export const removeMaterial = createAsyncThunk(
   "materials/delete",
   async (id: number, { rejectWithValue }) => {
@@ -79,9 +61,7 @@ export const removeMaterial = createAsyncThunk(
       await deleteMaterial(id);
       return await getMaterials();
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Something went wrong"
-      );
+      return rejectWithValue(extractError(error, "Failed to delete material"));
     }
   }
 );
@@ -92,11 +72,7 @@ const materialsSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-
-      /* FETCH */
-      .addCase(fetchMaterials.pending, (state) => {
-        state.loading = true;
-      })
+      .addCase(fetchMaterials.pending, (state) => { state.loading = true; })
       .addCase(fetchMaterials.fulfilled, (state, action) => {
         state.loading = false;
         state.data = action.payload.items;
@@ -104,22 +80,15 @@ const materialsSlice = createSlice({
         state.pageNumber = action.payload.pageNumber;
         state.pageSize = action.payload.pageSize;
       })
-      .addCase(fetchMaterials.rejected, (state) => {
-        state.loading = false;
-      })
+      .addCase(fetchMaterials.rejected, (state) => { state.loading = false; })
 
-      /* ADD */
       .addCase(addMaterial.fulfilled, (state, action) => {
         state.data = action.payload.items;
         state.totalCount = action.payload.totalCount;
       })
-
-      /* EDIT */
       .addCase(editMaterial.fulfilled, (state, action) => {
         state.data = action.payload.items;
       })
-
-      /* DELETE */
       .addCase(removeMaterial.fulfilled, (state, action) => {
         state.data = action.payload.items;
         state.totalCount = action.payload.totalCount;

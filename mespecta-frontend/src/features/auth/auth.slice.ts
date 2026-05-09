@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { loginUser, logoutApi } from "./auth.api";
+import { extractError } from "../../utils/extractError";
 import type { RootState } from "../../app/store";
 
 interface AuthState {
@@ -28,11 +29,7 @@ export const login = createAsyncThunk(
     try {
       return await loginUser(data);
     } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.Message ||
-        error?.message ||
-        "Invalid email or password."
-      );
+      return rejectWithValue(extractError(error, "Invalid email or password."));
     }
   }
 );

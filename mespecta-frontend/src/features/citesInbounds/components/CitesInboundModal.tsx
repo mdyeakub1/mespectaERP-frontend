@@ -102,7 +102,7 @@ export default function CitesInboundModal({
       onCancel={onClose}
       onOk={handleSubmit}
       width={1000}
-      destroyOnClose
+      destroyOnHidden
     >
       <Form layout="vertical" form={form}>
         <Row gutter={16}>

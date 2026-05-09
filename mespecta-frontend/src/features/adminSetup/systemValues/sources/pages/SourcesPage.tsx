@@ -154,7 +154,7 @@ const SourcesPage = () => {
         onOk={handleSubmit}
         onCancel={() => setIsModalOpen(false)}
         okText="Save"
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical">
           <Form.Item

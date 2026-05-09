@@ -1,19 +1,10 @@
-export interface CustomerAddress {
-  customerAddressId: number;
-  addressType: string;
-  addressLine: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  isDefault: boolean;
-}
-
 export interface Customer {
   customerId: number;
   customerName: string;
   email: string;
   phone: string;
+  billingAddress: string | null;
+  shippingAddress: string | null;
+  isActive: boolean;
   createdAt: string;
-  addresses: CustomerAddress[];
 }

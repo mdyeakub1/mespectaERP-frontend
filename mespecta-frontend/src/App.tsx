@@ -1,4 +1,4 @@
-import { ConfigProvider } from "antd";
+import { ConfigProvider, App as AntdApp } from "antd";
 import AppRoutes from "./routes/AppRoutes";
 
 function App() {
@@ -37,7 +37,9 @@ function App() {
         },
       }}
     >
-      <AppRoutes />
+      <AntdApp>
+        <AppRoutes />
+      </AntdApp>
     </ConfigProvider>
   );
 }

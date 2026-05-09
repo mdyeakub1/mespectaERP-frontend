@@ -41,7 +41,7 @@ export default function CustomersPage() {
   const [selectedRecord, setSelectedRecord] =
     useState<any>(null);
 
-  const [searchText, setSearchText] = useState("");
+  const [searchText] = useState("");
 
   /* ================= FETCH ================= */
   useEffect(() => {
@@ -62,41 +62,21 @@ export default function CustomersPage() {
     /* ===== Addresses Column ===== */
     {
       title: "Addresses",
-      render: (_: any, record: any) => {
-        const billing = record.addresses?.find(
-          (a: any) => a.addressType === "Billing"
-        );
-
-        const shipping = record.addresses?.find(
-          (a: any) => a.addressType === "Shipping"
-        );
-
-        return (
-          <div>
-            {billing && (
-              <div>
-                <strong>Billing:</strong>{" "}
-                {billing.addressLine}, {billing.city},{" "}
-                {billing.state}, {billing.country}
-              </div>
-            )}
-
-            {shipping && (
-              <div>
-                <strong>Shipping:</strong>{" "}
-                {shipping.addressLine}, {shipping.city},{" "}
-                {shipping.state}, {shipping.country}
-              </div>
-            )}
-
-            {!billing && !shipping && (
-              <span style={{ color: "#999" }}>
-                No address
-              </span>
-            )}
-          </div>
-        );
-      },
+      render: (_: any, record: any) => (
+        <div style={{ fontSize: 13 }}>
+          {record.shippingAddress && (
+            <div><strong>Shipping:</strong> {record.shippingAddress}</div>
+          )}
+          {record.billingAddress && (
+            <div style={{ marginTop: record.shippingAddress ? 4 : 0 }}>
+              <strong>Billing:</strong> {record.billingAddress}
+            </div>
+          )}
+          {!record.shippingAddress && !record.billingAddress && (
+            <span style={{ color: "#999" }}>No address</span>
+          )}
+        </div>
+      ),
     },
 
     /* ===== Edit / Delete ===== */

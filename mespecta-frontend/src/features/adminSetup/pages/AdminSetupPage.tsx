@@ -8,12 +8,10 @@ const AdminSetupLayout = () => {
   const location = useLocation();
 
   const getSelectedKey = () => {
-  if (location.pathname.startsWith("/admin-setup/system-values")) {
-    return "/admin-setup/system-values";
-  }
-
-  return location.pathname;
-};
+    if (location.pathname.startsWith("/admin-setup/system-values"))
+      return "/admin-setup/system-values";
+    return location.pathname;
+  };
 
   return (
     <Layout style={{ background: "#fff" }}>

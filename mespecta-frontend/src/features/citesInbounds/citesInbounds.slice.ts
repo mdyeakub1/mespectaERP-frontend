@@ -6,7 +6,8 @@ import type {
   CitesInboundResponse,
   CitesInboundFilter,
 } from "./citesInbounds.types";
-import { getCitesInbounds } from "./citesInbounds.api";
+import { getCitesInbounds, createCitesInbound } from "./citesInbounds.api";
+import { extractError } from "../../utils/extractError";
 
 interface State {
   items: CitesInboundResponse[];
@@ -20,6 +21,17 @@ const initialState: State = {
   loading: false,
 };
 
+export const addCitesInbound = createAsyncThunk(
+  "citesInbounds/add",
+  async (data: any, { rejectWithValue }) => {
+    try {
+      return await createCitesInbound(data);
+    } catch (error: any) {
+      return rejectWithValue(extractError(error, "Failed to create CITES inbound"));
+    }
+  }
+);
+
 export const fetchCitesInbounds =
   createAsyncThunk(
     "citesInbounds/fetchAll",
@@ -31,7 +43,7 @@ export const fetchCitesInbounds =
         return await getCitesInbounds(params);
       } catch (error: any) {
         return rejectWithValue(
-          error.response?.data
+          extractError(error, "Failed to fetch CITES inbounds")
         );
       }
     }

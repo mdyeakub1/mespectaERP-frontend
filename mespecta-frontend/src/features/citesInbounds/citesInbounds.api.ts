@@ -17,3 +17,9 @@ export const getCitesInbounds = async (
 
   return response.data;
 };
+
+// CREATE
+export const createCitesInbound = async (data: any) => {
+  const response = await api.post("/cites-inbounds", data);
+  return response.data;
+};

@@ -31,7 +31,7 @@ export default function ProductDetailsDrawer({
       width={600}
       open={open}
       onClose={onClose}
-      destroyOnClose
+      destroyOnHidden
     >
       {detailsLoading ? (
         <Spin />
