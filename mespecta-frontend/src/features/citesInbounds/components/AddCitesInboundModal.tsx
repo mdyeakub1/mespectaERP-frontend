@@ -113,7 +113,7 @@ export default function AddCitesInboundModal({
       leatherTypeId: values.leatherTypeId,
       colorId: values.colorId,
       unitOfMeasureId: values.unitOfMeasureId,
-      quantityReceived: parseFloat(values.quantityReceived),
+      quantityReceived: values.quantityReceived,
       numberOfSkins: values.numberOfSkins,
       acquisitionTypeId: values.acquisitionTypeId,
       sourceId: values.sourceId,

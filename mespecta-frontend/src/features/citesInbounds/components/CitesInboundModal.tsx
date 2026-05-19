@@ -78,7 +78,7 @@ export default function CitesInboundModal({
       leatherTypeId: values.leatherTypeId,
       colorId: values.colorId,
       unitOfMeasureId: values.unitOfMeasureId,
-      quantityReceived: parseFloat(values.quantityReceived),
+      quantityReceived: values.quantityReceived,
       numberOfSkins: values.numberOfSkins || 0,
       acquisitionTypeId: values.acquisitionTypeId,
       sourceId: values.sourceId,
