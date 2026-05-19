@@ -78,7 +78,7 @@ export default function CitesInboundModal({
       leatherTypeId: values.leatherTypeId,
       colorId: values.colorId,
       unitOfMeasureId: values.unitOfMeasureId,
-      quantityReceived: values.quantityReceived,
+      quantityReceived: parseFloat(values.quantityReceived),
       numberOfSkins: values.numberOfSkins || 0,
       acquisitionTypeId: values.acquisitionTypeId,
       sourceId: values.sourceId,
@@ -242,9 +242,17 @@ export default function CitesInboundModal({
             <Form.Item
               label="Quantity Received"
               name="quantityReceived"
-              rules={[{ required: true }]}
+              rules={[{
+                required: true,
+                validator: (_, value) => {
+                  if (!value && value !== 0) return Promise.reject("Quantity is required.");
+                  const num = parseFloat(value);
+                  if (isNaN(num) || num <= 0) return Promise.reject("Quantity must be greater than 0.");
+                  return Promise.resolve();
+                },
+              }]}
             >
-              <InputNumber style={{ width: "100%" }} />
+              <Input style={{ width: "100%" }} placeholder="e.g. 4.500" />
             </Form.Item>
           </Col>
 

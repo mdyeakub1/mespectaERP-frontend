@@ -113,7 +113,7 @@ export default function AddCitesInboundModal({
       leatherTypeId: values.leatherTypeId,
       colorId: values.colorId,
       unitOfMeasureId: values.unitOfMeasureId,
-      quantityReceived: values.quantityReceived,
+      quantityReceived: parseFloat(values.quantityReceived),
       numberOfSkins: values.numberOfSkins,
       acquisitionTypeId: values.acquisitionTypeId,
       sourceId: values.sourceId,
@@ -328,12 +328,17 @@ export default function AddCitesInboundModal({
                             <Form.Item
                                 label="Quantity"
                                 name="quantityReceived"
-                                rules={[{ required: true, type: "number", min: 0.0001, message: "Quantity must be greater than 0." }]}
+                                rules={[{
+                                    required: true,
+                                    validator: (_, value) => {
+                                        if (!value && value !== 0) return Promise.reject("Quantity is required.");
+                                        const num = parseFloat(value);
+                                        if (isNaN(num) || num <= 0) return Promise.reject("Quantity must be greater than 0.");
+                                        return Promise.resolve();
+                                    },
+                                }]}
                             >
-                                <InputNumber
-                                    min={0.0001}
-                                    style={{ width: "100%" }}
-                                />
+                                <Input style={{ width: "100%" }} placeholder="e.g. 4.500" />
                             </Form.Item>
                         </Col>
 
