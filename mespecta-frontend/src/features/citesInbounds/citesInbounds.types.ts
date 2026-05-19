@@ -1,20 +1,24 @@
 export interface CitesInboundResponse {
   citesInboundId: number;
-  citesInboundCode: string;
+  citesInboundSerialNo: string;
   issueDate: string;
   scientificName: string;
   commonName: string;
   leatherTypeName: string;
   colorName: string;
   quantityReceived: number;
+  quantityDisplay: string;
   numberOfSkins: number;
   acquisitionTypeName: string;
   sourceName: string;
   documentTypeName: string;
-  isLiveAnimal: boolean;
   citesNumber: string;
+  identification: string;
+  unitOfMeasureCode: string;
+  isLiveAnimal: boolean;
   citesDetails?: string;
   notes?: string;
+  createdAt?: string;
 }
 
 export interface PagedResponse<T> {

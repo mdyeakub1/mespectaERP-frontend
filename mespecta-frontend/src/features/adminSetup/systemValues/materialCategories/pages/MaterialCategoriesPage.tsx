@@ -77,7 +77,7 @@ const MaterialCategoriesPage = () => {
       setIsModalOpen(false);
       form.resetFields();
     } catch {
-      message.error("Operation failed");
+      // interceptor handles toast
     }
   };
 
@@ -92,7 +92,7 @@ const MaterialCategoriesPage = () => {
       message.success("Material Category deleted successfully");
       setIsDeleteModalOpen(false);
     } catch {
-      message.error("Failed to delete material category");
+      // interceptor handles toast
     }
   };
 

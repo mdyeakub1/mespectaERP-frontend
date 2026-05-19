@@ -4,7 +4,7 @@ import axios from "axios";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 export const loginUser = async (data: { email: string; password: string }) => {
-  const response = await api.post("/users/login", data);
+  const response = await api.post("/auth/login", data);
   // Handle both camelCase and PascalCase response shapes
   const payload = response.data?.data ?? response.data?.Data;
   return {
@@ -19,7 +19,7 @@ export const loginUser = async (data: { email: string; password: string }) => {
 
 export const refreshTokenApi = async (refreshToken: string) => {
   // Use raw axios to avoid interceptor loop
-  const response = await axios.post(`${BASE_URL}/users/refresh`, { refreshToken });
+  const response = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
   // Handle both camelCase (controllers) and PascalCase (error middleware) responses
   const payload = response.data?.data ?? response.data?.Data;
   if (!payload) throw new Error("Empty refresh response");
@@ -30,5 +30,5 @@ export const refreshTokenApi = async (refreshToken: string) => {
 };
 
 export const logoutApi = async (refreshToken: string) => {
-  await api.post("/users/logout", { refreshToken });
+  await api.post("/auth/logout", { refreshToken });
 };

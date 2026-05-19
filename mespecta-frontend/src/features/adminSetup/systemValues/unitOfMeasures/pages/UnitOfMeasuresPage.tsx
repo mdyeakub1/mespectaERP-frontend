@@ -80,7 +80,7 @@ const UnitOfMeasuresPage = () => {
       setIsModalOpen(false);
       form.resetFields();
     } catch {
-      message.error("Operation failed");
+      // interceptor handles toast
     }
   };
 
@@ -95,7 +95,7 @@ const UnitOfMeasuresPage = () => {
       message.success("Unit deleted successfully");
       setIsDeleteModalOpen(false);
     } catch {
-      message.error("Failed to delete unit");
+      // interceptor handles toast
     }
   };
 

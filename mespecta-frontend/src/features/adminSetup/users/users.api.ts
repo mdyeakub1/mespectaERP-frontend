@@ -5,6 +5,8 @@ export interface UserFilter {
   role?: string;
   page?: number;
   pageSize?: number;
+  sortBy?: string;
+  sortDescending?: boolean;
 }
 
 export interface PagedUsersResponse {
@@ -17,15 +19,17 @@ export const getUsers = async (filter: UserFilter = {}): Promise<PagedUsersRespo
     Page: filter.page ?? 1,
     PageSize: filter.pageSize ?? 10,
   };
-  if (filter.search) params.Search = filter.search;
-  if (filter.role) params.Role = filter.role;
+  if (filter.search)                         params.Search          = filter.search;
+  if (filter.role)                           params.Role            = filter.role;
+  if (filter.sortBy)                         params.SortBy          = filter.sortBy;
+  if (filter.sortDescending !== undefined)   params.SortDescending  = filter.sortDescending;
 
   const response = await api.get("/users", { params });
   return response.data.data;
 };
 
 export const createUser = async (data: any) => {
-  const response = await api.post("/users", data);
+  const response = await api.post("/auth/register", data);
   return response.data;
 };
 

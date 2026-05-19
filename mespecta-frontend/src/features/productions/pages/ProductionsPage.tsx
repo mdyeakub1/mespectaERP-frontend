@@ -11,12 +11,12 @@ import {
   Form,
   Select,
   DatePicker,
-  message,
 } from "antd";
 import {
   PlusOutlined,
   FilterOutlined,
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { fetchProductions } from "../productions.slice";
 import StartProductionModal from "../components/StartProductionModal";
@@ -24,28 +24,39 @@ import api from "../../../services/api";
 
 const { RangePicker } = DatePicker;
 
-const ProductionStatusMap: Record<
-  number,
-  { label: string; color: string }
-> = {
-  1: { label: "In Progress", color: "processing" },
-  2: { label: "Paused", color: "warning" },
-  3: { label: "Completed", color: "success" },
+const getStatusTag = (status: number | string) => {
+  switch (status) {
+    case 1:
+    case "InProgress":
+    case "In Progress":
+      return <Tag color="processing">In Progress</Tag>;
+    case 2:
+    case "Paused":
+      return <Tag color="warning">Paused</Tag>;
+    case 3:
+    case "Completed":
+      return <Tag color="success">Completed</Tag>;
+    default:
+      return <Tag>{String(status)}</Tag>;
+  }
 };
 
 export default function ProductionsPage() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { data, loading, totalCount } =
     useAppSelector((state) => state.productions);
 
     
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [filters, setFilters] = useState<any>({});
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [startOpen, setStartOpen] = useState(false);
+  const [searchTerm, setSearchTerm]           = useState("");
+  const [pageNumber, setPageNumber]           = useState(1);
+  const [pageSize, setPageSize]               = useState(10);
+  const [filters, setFilters]                 = useState<any>({});
+  const [filterOpen, setFilterOpen]           = useState(false);
+  const [startOpen, setStartOpen]             = useState(false);
+  const [sortBy, setSortBy]                   = useState<string | undefined>(undefined);
+  const [sortDescending, setSortDescending]   = useState(true);
 
   const [products, setProducts] = useState<any[]>([]);
   const [craftsmen, setCraftsmen] = useState<any[]>([]);
@@ -60,15 +71,10 @@ export default function ProductionsPage() {
         pageNumber,
         pageSize,
         ...filters,
+        ...(sortBy ? { sortBy, sortDescending } : {}),
       })
     );
-  }, [
-    dispatch,
-    searchTerm,
-    pageNumber,
-    pageSize,
-    filters,
-  ]);
+  }, [dispatch, searchTerm, pageNumber, pageSize, filters, sortBy, sortDescending]);
 
   // ================= LOAD FILTER DROPDOWNS =================
   const loadFilterDropdowns = async () => {
@@ -94,7 +100,7 @@ export default function ProductionsPage() {
       setProducts(extract(productRes));
       setCraftsmen(extract(craftsmanRes));
     } catch {
-      message.error("Failed to load filter data");
+      // interceptor handles toast
     } finally {
       setLoadingFilters(false);
     }
@@ -141,23 +147,14 @@ export default function ProductionsPage() {
   };
 
   const columns = [
-    { title: "Production Code", dataIndex: "productionCode" },
+    { title: "Outbound Serial No.", dataIndex: "outboundSerialNumber" },
     { title: "Product", dataIndex: "productCode" },
     { title: "Craftsman", dataIndex: "craftsmanName" },
     { title: "CITES Number", dataIndex: "citesNumber" },
     {
       title: "Status",
       dataIndex: "status",
-      render: (status: number) => {
-        const config = ProductionStatusMap[status];
-        return config ? (
-          <Tag color={config.color}>
-            {config.label}
-          </Tag>
-        ) : (
-          <Tag>Unknown</Tag>
-        );
-      },
+      render: (status: number | string) => getStatusTag(status),
     },
     {
       title: "Created At",
@@ -176,6 +173,18 @@ export default function ProductionsPage() {
       dataIndex: "totalWorkingHours",
       render: (val: number) =>
         `${val || 0} hrs`,
+    },
+    {
+      title: "",
+      align: "right" as const,
+      render: (_: any, record: any) => (
+        <Button
+          type="link"
+          onClick={() => navigate(`/productions/${record.productionId}`)}
+        >
+          Details
+        </Button>
+      ),
     },
   ];
 
@@ -213,6 +222,38 @@ export default function ProductionsPage() {
                 <Button danger onClick={handleResetFilter}>
                   Reset Filter
                 </Button>
+              </Col>
+            )}
+
+            <Col>
+              <Select
+                placeholder="Sort By"
+                allowClear
+                style={{ width: 170 }}
+                value={sortBy}
+                onChange={(val) => { setSortBy(val); setPageNumber(1); }}
+                options={[
+                  { value: "SerialNo",           label: "Serial No." },
+                  { value: "CreatedAt",          label: "Created At" },
+                  { value: "CompletedAt",        label: "Completed At" },
+                  { value: "Status",             label: "Status" },
+                  { value: "ProductionType",     label: "Type" },
+                  { value: "TotalWorkingHours",  label: "Working Hours" },
+                  { value: "CustomerName",       label: "Customer" },
+                ]}
+              />
+            </Col>
+            {sortBy && (
+              <Col>
+                <Select
+                  style={{ width: 130 }}
+                  value={sortDescending}
+                  onChange={setSortDescending}
+                  options={[
+                    { value: true,  label: "Descending" },
+                    { value: false, label: "Ascending" },
+                  ]}
+                />
               </Col>
             )}
           </Row>

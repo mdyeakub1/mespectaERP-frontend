@@ -80,7 +80,7 @@ const ProductCategoriesPage = () => {
       setIsModalOpen(false);
       form.resetFields();
     } catch {
-      message.error("Operation failed");
+      // interceptor handles toast
     }
   };
 
@@ -95,7 +95,7 @@ const ProductCategoriesPage = () => {
       message.success("Product Category deleted successfully");
       setIsDeleteModalOpen(false);
     } catch {
-      message.error("Failed to delete product category");
+      // interceptor handles toast
     }
   };
 

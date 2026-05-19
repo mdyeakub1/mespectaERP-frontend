@@ -10,7 +10,7 @@ export const changePassword = async (data: {
   newPassword: string;
 }) => {
   const response = await api.put(
-    "/users/change-password",
+    "/auth/change-password",
     data
   );
 

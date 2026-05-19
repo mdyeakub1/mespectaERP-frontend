@@ -15,7 +15,9 @@ export interface Product {
   priceItaly: number;
   priceEU: number;
   priceOutsideEU: number;
+  categoryId: number;
   categoryName: string;
+  genderId: number;
   genderName: string;
   materials: ProductMaterial[];
 }

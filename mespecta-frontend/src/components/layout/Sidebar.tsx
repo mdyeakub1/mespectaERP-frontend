@@ -1,18 +1,20 @@
 import { Layout, Menu } from "antd";
 import {
   SafetyCertificateFilled,
+  ExportOutlined,
   ThunderboltFilled,
-  GiftFilled,
   AppstoreFilled,
   DatabaseFilled,
-  ShopFilled,
-  ContactsFilled,
   ToolFilled,
   SettingFilled,
+  ShoppingCartOutlined,
+  InboxOutlined,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const { Sider } = Layout;
+
+const CITES_OUTBOUND_KEY = "/cites-outbounds";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -20,35 +22,20 @@ const Sidebar = () => {
 
   const getSelectedKey = () => {
     const path = location.pathname;
-
-    if (path.startsWith("/cites-inbounds"))
-      return "/cites-inbounds";
-
-    if (path.startsWith("/productions"))
-      return "/productions";
-
-    if (path.startsWith("/finished-products"))
-      return "/finished-products";
-
-    if (path.startsWith("/products"))
-      return "/products";
-
-    if (path.startsWith("/materials"))
-      return "/materials";
-
-    if (path.startsWith("/suppliers"))
-      return "/suppliers";
-
-    if (path.startsWith("/customers"))
-      return "/customers";
-
-    if (path.startsWith("/craftsmen"))
-      return "/craftsmen";
-
-    if (path.startsWith("/admin-setup"))
-      return "/admin-setup";
-
+    if (path.startsWith("/cites-inbounds"))   return "/cites-inbounds";
+    if (path.startsWith("/cites-outbounds/sold"))  return "/cites-outbounds/sold";
+    if (path.startsWith("/cites-outbounds/stock")) return "/cites-outbounds/stock";
+    if (path.startsWith("/productions"))      return "/productions";
+    if (path.startsWith("/products"))         return "/products";
+    if (path.startsWith("/materials"))        return "/materials";
+    if (path.startsWith("/craftsmen"))        return "/craftsmen";
+    if (path.startsWith("/admin-setup"))      return "/admin-setup";
     return path;
+  };
+
+  const getOpenKeys = () => {
+    if (location.pathname.startsWith("/cites-outbounds")) return [CITES_OUTBOUND_KEY];
+    return [];
   };
 
   return (
@@ -58,7 +45,7 @@ const Sidebar = () => {
           color: "white",
           padding: 24,
           fontWeight: 600,
-          fontSize: 20
+          fontSize: 20,
         }}
       >
         Mespecta ERP
@@ -68,6 +55,7 @@ const Sidebar = () => {
         theme="dark"
         mode="inline"
         selectedKeys={[getSelectedKey()]}
+        defaultOpenKeys={getOpenKeys()}
         onClick={({ key }) => navigate(key)}
         items={[
           {
@@ -76,14 +64,26 @@ const Sidebar = () => {
             label: "CITES Inbound",
           },
           {
+            key: CITES_OUTBOUND_KEY,
+            icon: <ExportOutlined />,
+            label: "CITES Outbound",
+            children: [
+              {
+                key: "/cites-outbounds/sold",
+                icon: <ShoppingCartOutlined />,
+                label: "Sold",
+              },
+              {
+                key: "/cites-outbounds/stock",
+                icon: <InboxOutlined />,
+                label: "Stock",
+              },
+            ],
+          },
+          {
             key: "/productions",
             icon: <ThunderboltFilled />,
             label: "Productions",
-          },
-          {
-            key: "/finished-products",
-            icon: <GiftFilled />,
-            label: "Finished Products",
           },
           {
             key: "/products",
@@ -94,16 +94,6 @@ const Sidebar = () => {
             key: "/materials",
             icon: <DatabaseFilled />,
             label: "Materials",
-          },
-          {
-            key: "/suppliers",
-            icon: <ShopFilled />,
-            label: "Suppliers",
-          },
-          {
-            key: "/customers",
-            icon: <ContactsFilled />,
-            label: "Customers",
           },
           {
             key: "/craftsmen",

@@ -75,7 +75,7 @@ const ColorsPage = () => {
       setIsModalOpen(false);
       form.resetFields();
     } catch {
-      message.error("Operation failed");
+      // interceptor handles toast
     }
   };
 
@@ -87,7 +87,7 @@ const ColorsPage = () => {
       message.success("Color deleted successfully");
       setIsDeleteModalOpen(false);
     } catch {
-      message.error("Failed to delete color");
+      // interceptor handles toast
     }
   };
 

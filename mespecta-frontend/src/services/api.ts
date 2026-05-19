@@ -27,35 +27,55 @@ const processQueue = (error: any, token: string | null) => {
   failedQueue = [];
 };
 
+// ── Deduplication: suppress identical toasts fired within 500 ms ──────────────
+let _lastMsg = "";
+let _lastAt  = 0;
+
+function safeShowError(msg: string) {
+  const now = Date.now();
+  if (msg === _lastMsg && now - _lastAt < 500) return;
+  _lastMsg = msg;
+  _lastAt  = now;
+  showError(msg);
+}
+
 // ── Response interceptor ───────────────────────────────────────────────────────
 api.interceptors.response.use(
+  // ── Success path: pass through, but catch 200 responses that signal failure ──
   (response) => {
+    const body = response.data;
     const isAuthEndpoint =
-      response.config.url?.includes("/users/login") ||
-      response.config.url?.includes("/users/refresh");
+      response.config.url?.endsWith("/auth/login") ||
+      response.config.url?.endsWith("/auth/refresh");
 
-    // Backend may return PascalCase (error middleware) or camelCase (controllers)
-    const isFailure =
-      response.data?.Success === false || response.data?.success === false;
-
-    if (isFailure) {
-      const msg = response.data.Message || response.data.message || "Operation failed";
-      if (!isAuthEndpoint) {
-        showError(msg);
-      }
+    // Some endpoints still return HTTP 200 with success:false
+    if (body?.success === false && !isAuthEndpoint) {
+      const msg = body.message || "Operation failed";
+      safeShowError(msg);
       return Promise.reject(new Error(msg));
     }
     return response;
   },
+
+  // ── Error path ────────────────────────────────────────────────────────────────
   async (error) => {
     const originalRequest = error.config;
+    const url  = originalRequest?.url ?? "";
+    const status = error.response?.status;
 
-    // Handle 401 — attempt token refresh (skip for auth endpoints)
-    const isAuthEndpoint =
-      originalRequest.url?.includes("/users/login") ||
-      originalRequest.url?.includes("/users/refresh");
+    // Endpoints whose 401 means "wrong credentials" — do NOT trigger token refresh,
+    // but DO show a toast (same as any other error).
+    const isCredentialEndpoint =
+      url.endsWith("/auth/login") ||
+      url.endsWith("/auth/change-password");
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
+    // Endpoints that handle their own error UI — never show a toast from here.
+    const isSilentEndpoint =
+      url.endsWith("/auth/login") ||
+      url.endsWith("/auth/refresh");
+
+    // ── 401: attempt silent token refresh (only for real session-expiry 401s) ──
+    if (status === 401 && !originalRequest._retry && !isCredentialEndpoint) {
       const refreshToken = localStorage.getItem("refreshToken");
 
       if (!refreshToken) {
@@ -65,10 +85,10 @@ api.interceptors.response.use(
       }
 
       if (isRefreshing) {
-        // Queue this request until refresh completes
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         }).then((token) => {
+          originalRequest._retry = true;
           originalRequest.headers.Authorization = `Bearer ${token}`;
           return api(originalRequest);
         });
@@ -79,12 +99,10 @@ api.interceptors.response.use(
 
       try {
         const data = await refreshTokenApi(refreshToken);
-
         if (!data?.token) throw new Error("No token in refresh response");
 
         localStorage.setItem("token", data.token);
         localStorage.setItem("refreshToken", data.refreshToken);
-
         api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
         originalRequest.headers.Authorization = `Bearer ${data.token}`;
 
@@ -100,14 +118,13 @@ api.interceptors.response.use(
       }
     }
 
-    // Other errors — skip global toast for auth endpoints (login handles its own errors)
-    if (!isAuthEndpoint) {
-      const msg = error.response?.data?.Message || error.response?.data?.message;
-      if (msg) {
-        showError(msg);
-      } else if (error.response?.status !== 401) {
-        showError("Something went wrong");
-      }
+    // ── All other errors: show ONE toast ──────────────────────────────────────
+    // • Skip silent endpoints (login/refresh handle their own UI)
+    // • Skip generic 401s that fell through (refresh just handled/redirected them)
+    const isGeneric401 = status === 401 && !isCredentialEndpoint;
+    if (!isSilentEndpoint && !isGeneric401) {
+      const msg = error.response?.data?.message || "Something went wrong";
+      safeShowError(msg);
     }
 
     return Promise.reject(error);

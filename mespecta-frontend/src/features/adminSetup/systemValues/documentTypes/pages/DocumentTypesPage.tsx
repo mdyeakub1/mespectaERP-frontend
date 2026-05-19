@@ -82,7 +82,7 @@ const DocumentTypesPage = () => {
       setIsModalOpen(false);
       form.resetFields();
     } catch {
-      message.error("Operation failed");
+      // interceptor handles toast
     }
   };
 
@@ -98,7 +98,7 @@ const DocumentTypesPage = () => {
       message.success("Document Type deleted successfully");
       setIsDeleteModalOpen(false);
     } catch {
-      message.error("Failed to delete document type");
+      // interceptor handles toast
     }
   };
 

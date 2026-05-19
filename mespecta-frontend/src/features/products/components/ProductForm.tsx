@@ -59,7 +59,7 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
         const response = await api.get("/product-genders");
         setGenders(response.data.data);
       } catch {
-        message.error("Failed to load genders");
+        // interceptor handles toast
       }
     };
 
@@ -69,12 +69,18 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
   useEffect(() => {
     if (initialData) {
       form.setFieldsValue({
-        ...initialData,
+        productCode:    initialData.productCode,
+        description:    initialData.description,
+        categoryId:     initialData.categoryId,
+        genderId:       initialData.genderId,
+        priceItaly:     initialData.priceItaly,
+        priceEU:        initialData.priceEU,
+        priceOutsideEU: initialData.priceOutsideEU,
         materials: initialData.materials?.map((m: any) => ({
-          materialId: m.materialId,
+          materialId:       m.materialId,
           quantityRequired: m.quantityRequired,
-          unitOfMeasureId: m.unitOfMeasureId,
-          note: m.note,
+          unitOfMeasureId:  m.unitOfMeasureId,
+          note:             m.note ?? "",
         })),
       });
     } else {
@@ -95,14 +101,15 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
           })
         ).unwrap();
         message.success("Product updated successfully");
+        onClose();
       } else {
         await dispatch(addProduct(values)).unwrap();
         message.success("Product created successfully");
+        form.resetFields();
+        onClose();
       }
-
-      onClose();
-    } catch (error: any) {
-      message.error(error || "Operation failed");
+    } catch {
+      // interceptor handles toast
     } finally {
       setSubmitting(false);
     }
@@ -146,7 +153,6 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
             <Form.Item
               label="Description"
               name="description"
-              rules={[{ required: true, message: "Description is required" }]}
             >
               <Input />
             </Form.Item>
@@ -246,7 +252,6 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
                     <Form.Item
                       {...restField}
                       name={[name, "quantityRequired"]}
-                      rules={[{ required: true }]}
                     >
                       <InputNumber
                         placeholder="Qty"
@@ -259,7 +264,6 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
                     <Form.Item
                       {...restField}
                       name={[name, "unitOfMeasureId"]}
-                      rules={[{ required: true }]}
                     >
                       <Select placeholder="Unit">
                         {units.map((u) => (

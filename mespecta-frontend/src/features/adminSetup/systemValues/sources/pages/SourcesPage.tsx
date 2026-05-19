@@ -77,7 +77,7 @@ const SourcesPage = () => {
       setIsModalOpen(false);
       form.resetFields();
     } catch {
-      message.error("Operation failed");
+      // interceptor handles toast
     }
   };
 
@@ -92,7 +92,7 @@ const SourcesPage = () => {
       message.success("Source deleted successfully");
       setIsDeleteModalOpen(false);
     } catch {
-      message.error("Failed to delete source");
+      // interceptor handles toast
     }
   };
 

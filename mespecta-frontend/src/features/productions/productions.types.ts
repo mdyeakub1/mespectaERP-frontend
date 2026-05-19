@@ -1,6 +1,6 @@
 export interface Production {
   productionId: number;
-  productionCode: string;
+  outboundSerialNumber: string;
   status: number;
   createdAt: string;
   completedAt: string | null;

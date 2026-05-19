@@ -48,6 +48,18 @@ const SystemValuesLayout = () => {
               key: "/admin-setup/system-values/unit-of-measures",
               label: "Unit of measures",
             },
+            {
+              key: "/admin-setup/system-values/outbound-reasons",
+              label: "Outbound Reasons",
+            },
+            {
+              key: "/admin-setup/system-values/outgoing-document-types",
+              label: "Outgoing Document Types",
+            },
+            {
+              key: "/admin-setup/system-values/destinations",
+              label: "Destinations",
+            },
            
           ]}
         />

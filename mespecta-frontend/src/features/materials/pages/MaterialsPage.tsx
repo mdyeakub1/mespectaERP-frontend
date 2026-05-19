@@ -38,11 +38,12 @@ const MaterialsPage = () => {
     (state) => state.materialCategories
   );
 
-  const [searchText, setSearchText] = useState("");
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  const [filters, setFilters] = useState<any>({});
+  const [searchText, setSearchText]         = useState("");
+  const [pageNumber, setPageNumber]         = useState(1);
+  const [pageSize, setPageSize]             = useState(10);
+  const [filters, setFilters]               = useState<any>({});
+  const [sortBy, setSortBy]                 = useState<string | undefined>(undefined);
+  const [sortDescending, setSortDescending] = useState(true);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] =
@@ -62,11 +63,12 @@ const MaterialsPage = () => {
         pageNumber,
         pageSize,
         ...filters,
+        ...(sortBy ? { sortBy, sortDescending } : {}),
       })
     );
 
     dispatch(fetchMaterialCategories());
-  }, [dispatch, searchText, pageNumber, pageSize, filters]);
+  }, [dispatch, searchText, pageNumber, pageSize, filters, sortBy, sortDescending]);
 
   /* ================= CREATE ================= */
   const openCreateModal = () => {
@@ -118,8 +120,8 @@ const MaterialsPage = () => {
 
       setIsModalOpen(false);
       form.resetFields();
-    } catch (error: any) {
-      message.error(error || "Operation failed");
+    } catch {
+      // interceptor handles toast
     }
   };
 
@@ -134,8 +136,8 @@ const MaterialsPage = () => {
         "Material deleted successfully"
       );
       setIsDeleteModalOpen(false);
-    } catch (error: any) {
-      message.error(error || "Delete failed");
+    } catch {
+      // interceptor handles toast
     }
   };
 
@@ -217,14 +219,36 @@ const MaterialsPage = () => {
               {categories.map((cat) => (
                 <Select.Option
                   key={cat.materialCategoryId}
-                  value={
-                    cat.materialCategoryId
-                  }
+                  value={cat.materialCategoryId}
                 >
                   {cat.name}
                 </Select.Option>
               ))}
             </Select>
+
+            <Select
+              placeholder="Sort By"
+              allowClear
+              style={{ width: 150 }}
+              value={sortBy}
+              onChange={(val) => { setSortBy(val); setPageNumber(1); }}
+              options={[
+                { value: "MaterialName", label: "Name" },
+                { value: "CategoryName", label: "Category" },
+                { value: "CreatedAt",    label: "Created At" },
+              ]}
+            />
+            {sortBy && (
+              <Select
+                style={{ width: 130 }}
+                value={sortDescending}
+                onChange={setSortDescending}
+                options={[
+                  { value: true,  label: "Descending" },
+                  { value: false, label: "Ascending" },
+                ]}
+              />
+            )}
 
           </Space>
         </Col>

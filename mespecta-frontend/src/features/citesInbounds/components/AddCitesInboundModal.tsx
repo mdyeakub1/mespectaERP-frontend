@@ -5,7 +5,6 @@ import {
     InputNumber,
     DatePicker,
     Select,
-    Switch,
     Row,
     Col,
     message,
@@ -94,7 +93,7 @@ export default function AddCitesInboundModal({
             setDocumentTypes(extractList(document));
         } catch (err) {
             console.error("Dropdown load error:", err);
-            message.error("Failed to load dropdown data");
+            // interceptor handles toast
         } finally {
             setLoadingDropdowns(false);
         }
@@ -115,12 +114,12 @@ export default function AddCitesInboundModal({
       colorId: values.colorId,
       unitOfMeasureId: values.unitOfMeasureId,
       quantityReceived: values.quantityReceived,
-      numberOfSkins: values.numberOfSkins || 0,
+      numberOfSkins: values.numberOfSkins,
       acquisitionTypeId: values.acquisitionTypeId,
       sourceId: values.sourceId,
       documentTypeId: values.documentTypeId,
-      isLiveAnimal: values.isLiveAnimal || false,
       citesNumber: values.citesNumber,
+      identification: values.identification?.trim() || null,
       citesDetails: values.citesDetails?.trim() || null,
       notes: values.notes?.trim() || null,
     };
@@ -161,18 +160,17 @@ export default function AddCitesInboundModal({
             {loadingDropdowns ? (
                 <Spin />
             ) : (
-                <Form layout="vertical" form={form}>
+                <Form layout="vertical" form={form} initialValues={{ issueDate: dayjs() }}>
                     {/* Date + CITES Number */}
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item
                                 label="Issue Date"
                                 name="issueDate"
-                                rules={[{ required: true }]}
+                                rules={[{ required: true, message: "Issue date is required." }]}
                             >
                                 <DatePicker
                                     style={{ width: "100%" }}
-                                    defaultValue={dayjs()}
                                 />
                             </Form.Item>
                         </Col>
@@ -314,11 +312,10 @@ export default function AddCitesInboundModal({
                         </Col>
                         <Col span={12}>
                             <Form.Item
-                                label="Live Animal"
-                                name="isLiveAnimal"
-                                valuePropName="checked"
+                                label="Identification"
+                                name="identification"
                             >
-                                <Switch />
+                                <Input placeholder="Physical tag / marking (optional)" />
                             </Form.Item>
                         </Col>
 
@@ -331,9 +328,10 @@ export default function AddCitesInboundModal({
                             <Form.Item
                                 label="Quantity"
                                 name="quantityReceived"
-                                rules={[{ required: true }]}
+                                rules={[{ required: true, type: "number", min: 0.0001, message: "Quantity must be greater than 0." }]}
                             >
                                 <InputNumber
+                                    min={0.0001}
                                     style={{ width: "100%" }}
                                 />
                             </Form.Item>
@@ -362,8 +360,10 @@ export default function AddCitesInboundModal({
                             <Form.Item
                                 label="Number of Skins"
                                 name="numberOfSkins"
+                                rules={[{ type: "number", min: 1, message: "Must be at least 1." }]}
                             >
                                 <InputNumber
+                                    min={1}
                                     style={{ width: "100%" }}
                                 />
                             </Form.Item>

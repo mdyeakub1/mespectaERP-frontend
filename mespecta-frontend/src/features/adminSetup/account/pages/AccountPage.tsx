@@ -68,15 +68,12 @@ export default function AccountPage() {
         newPassword: values.newPassword,
       });
 
-      if (response.success) {
-        message.success(response.message);
-        form.resetFields();
-        setModalOpen(false);
-      } else {
-        message.error(response.message || "Failed to change password");
-      }
-    } catch (error: any) {
-      message.error(error.response?.data?.message || "Something went wrong");
+      // If we reach here the request succeeded (errors throw and are caught below)
+      message.success(response?.message || "Password changed successfully");
+      form.resetFields();
+      setModalOpen(false);
+    } catch {
+      // interceptor handles toast
     } finally {
       setSubmitting(false);
     }

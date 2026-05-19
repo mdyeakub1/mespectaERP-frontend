@@ -34,14 +34,26 @@ const { email, role } = useAppSelector(
   const getPageTitle = () => {
     const path = location.pathname;
 
+    if (path === "/admin-setup/db-backup")
+      return "Database Backup";
+
     if (path.startsWith("/admin-setup"))
       return "Admin Setup";
+
+    if (path.match(/^\/productions\/\d+/))
+      return "Production Details";
 
     if (path.startsWith("/cites-inbounds"))
       return "CITES Inbound";
 
     if (path.startsWith("/finished-products/"))
       return "Finished Product Details";
+
+    if (path.match(/^\/cites-outbounds\/sold\/\d+/))
+      return "CITES Outbound Details";
+
+    if (path.match(/^\/cites-outbounds\/stock\/\d+/))
+      return "CITES Outbound Details";
 
     if (path.match(/^\/craftsmen\/\d+/))
       return "Craftsman Details";
@@ -51,6 +63,10 @@ const { email, role } = useAppSelector(
         return "Productions";
       case "/finished-products":
         return "Finished Products";
+      case "/cites-outbounds/stock":
+        return "CITES Outbound — Stock";
+      case "/cites-outbounds/sold":
+        return "CITES Outbound — Sold";
       case "/products":
         return "Products";
       case "/materials":

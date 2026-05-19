@@ -77,7 +77,7 @@ const LeatherTypesPage = () => {
       setIsModalOpen(false);
       form.resetFields();
     } catch {
-      message.error("Operation failed");
+      // interceptor handles toast
     }
   };
 
@@ -92,7 +92,7 @@ const LeatherTypesPage = () => {
       message.success("Leather Type deleted successfully");
       setIsDeleteModalOpen(false);
     } catch {
-      message.error("Failed to delete leather type");
+      // interceptor handles toast
     }
   };
 

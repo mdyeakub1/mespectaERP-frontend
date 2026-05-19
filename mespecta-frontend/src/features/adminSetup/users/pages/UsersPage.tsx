@@ -9,7 +9,6 @@ import {
   Select,
   message,
   Space,
-  Popconfirm,
   Row,
   Col,
 } from "antd";
@@ -31,16 +30,20 @@ export default function UsersPage() {
     pageSize: PAGE_SIZE,
   });
   const [searchInput, setSearchInput] = useState("");
+  const [sortBy, setSortBy]               = useState<string | undefined>(undefined);
+  const [sortDescending, setSortDescending] = useState(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletingRecord, setDeletingRecord] = useState<any>(null);
   const [form] = Form.useForm();
 
-  // Fetch whenever filter changes
+  // Fetch whenever filter or sort changes
   useEffect(() => {
-    dispatch(fetchUsers(filter));
-  }, [dispatch, filter]);
+    dispatch(fetchUsers({ ...filter, sortBy, sortDescending: sortBy ? sortDescending : undefined }));
+  }, [dispatch, filter, sortBy, sortDescending]);
 
   // Debounced search — updates filter.search after 400 ms
   const handleSearchChange = (value: string) => {
@@ -98,24 +101,27 @@ export default function UsersPage() {
       setModalOpen(false);
       form.resetFields();
       dispatch(fetchUsers(filter)); // Refresh current page
-    } catch (err: any) {
-      if (typeof err === "string") message.error(err);
+    } catch {
+      // interceptor handles toast
     }
   };
 
   /* ── Delete ── */
-  const handleDelete = async (id: number) => {
+  const handleDelete = async () => {
+    if (!deletingRecord) return;
     try {
-      await dispatch(removeUser(id)).unwrap();
+      await dispatch(removeUser(deletingRecord.userId)).unwrap();
       message.success("User deleted");
+      setDeleteModalOpen(false);
+      setDeletingRecord(null);
       // If last item on page > 1, go back a page
       const newPage =
         items.length === 1 && (filter.page ?? 1) > 1
           ? (filter.page ?? 1) - 1
           : filter.page;
       setFilter((prev) => ({ ...prev, page: newPage }));
-    } catch (err: any) {
-      if (typeof err === "string") message.error(err);
+    } catch {
+      // interceptor handles toast
     }
   };
 
@@ -133,9 +139,10 @@ export default function UsersPage() {
             style={{ color: "#1677ff", cursor: "pointer" }}
             onClick={() => openEdit(record)}
           />
-          <Popconfirm title="Are you sure?" onConfirm={() => handleDelete(record.userId)}>
-            <DeleteOutlined style={{ color: "#ff4d4f", cursor: "pointer" }} />
-          </Popconfirm>
+          <DeleteOutlined
+            style={{ color: "#ff4d4f", cursor: "pointer" }}
+            onClick={() => { setDeletingRecord(record); setDeleteModalOpen(true); }}
+          />
         </Space>
       ),
     },
@@ -165,6 +172,31 @@ export default function UsersPage() {
                 { value: "Craftsman", label: "Craftsman" },
               ]}
             />
+            <Select
+              placeholder="Sort By"
+              allowClear
+              style={{ width: 150 }}
+              value={sortBy}
+              onChange={(val) => { setSortBy(val); setFilter((p) => ({ ...p, page: 1 })); }}
+              options={[
+                { value: "FullName",  label: "Full Name" },
+                { value: "Email",     label: "Email" },
+                { value: "Role",      label: "Role" },
+                { value: "IsActive",  label: "Active" },
+                { value: "CreatedAt", label: "Created At" },
+              ]}
+            />
+            {sortBy && (
+              <Select
+                style={{ width: 130 }}
+                value={sortDescending}
+                onChange={setSortDescending}
+                options={[
+                  { value: true,  label: "Descending" },
+                  { value: false, label: "Ascending" },
+                ]}
+              />
+            )}
           </Space>
         </Col>
 
@@ -225,6 +257,21 @@ export default function UsersPage() {
             />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* DELETE CONFIRM MODAL */}
+      <Modal
+        title="Delete User"
+        open={deleteModalOpen}
+        onOk={handleDelete}
+        onCancel={() => { setDeleteModalOpen(false); setDeletingRecord(null); }}
+        okText="Delete"
+        okButtonProps={{ danger: true }}
+        confirmLoading={mutating}
+        destroyOnHidden
+      >
+        Are you sure you want to delete{" "}
+        <strong>{deletingRecord?.fullName}</strong>? This action cannot be undone.
       </Modal>
     </Card>
   );

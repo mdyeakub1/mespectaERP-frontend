@@ -44,12 +44,13 @@ const [detailsId, setDetailsId] = useState<number | null>(null);
   const [selectedRecord, setSelectedRecord] =
     useState<any>(null);
 
-  const [search, setSearch] = useState("");
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-
-  const [filters, setFilters] = useState<any>({});
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [search, setSearch]                   = useState("");
+  const [pageNumber, setPageNumber]           = useState(1);
+  const [pageSize, setPageSize]               = useState(10);
+  const [filters, setFilters]                 = useState<any>({});
+  const [filterOpen, setFilterOpen]           = useState(false);
+  const [sortBy, setSortBy]                   = useState<string | undefined>(undefined);
+  const [sortDescending, setSortDescending]   = useState(true);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [genders, setGenders] = useState<any[]>([]);
@@ -64,9 +65,10 @@ useEffect(() => {
       pageNumber,
       pageSize,
       ...filters,
+      ...(sortBy ? { sortBy, sortDescending } : {}),
     })
   );
-}, [dispatch, search, pageNumber, pageSize, filters]);
+}, [dispatch, search, pageNumber, pageSize, filters, sortBy, sortDescending]);
 
   /* ================= LOAD FILTER DROPDOWNS ================= */
   useEffect(() => {
@@ -88,7 +90,7 @@ useEffect(() => {
       setCategories(extract(catRes));
       setGenders(extract(genRes));
     } catch {
-      message.error("Failed to load filters");
+      // interceptor handles toast
     }
   };
 
@@ -109,8 +111,8 @@ useEffect(() => {
 
       message.success("Product deleted successfully");
       setDeleteModalOpen(false);
-    } catch (error: any) {
-      message.error(error || "Delete failed");
+    } catch {
+      // interceptor handles toast
     }
   };
 
@@ -144,13 +146,31 @@ useEffect(() => {
       <EditOutlined
         style={{ color: "#1677ff", cursor: "pointer" }}
         onClick={async () => {
-  const response = await api.get(
-    `/products/${record.productId}`
-  );
+          try {
+            const [categoriesRes, gendersRes, productRes] = await Promise.all([
+              api.get("/product-categories"),
+              api.get("/product-genders"),
+              api.get(`/products/${record.productId}`),
+            ]);
 
-  setEditingRecord(response.data.data);
-  setDrawerOpen(true);
-}}
+            const cats    = categoriesRes.data?.data?.items ?? categoriesRes.data?.data ?? [];
+            const gens    = gendersRes.data?.data?.items    ?? gendersRes.data?.data    ?? [];
+            const product = productRes.data.data;
+
+            const categoryId = cats.find(
+              (c: any) => c.name.toLowerCase() === product.categoryName?.toLowerCase()
+            )?.productCategoryId ?? null;
+
+            const genderId = gens.find(
+              (g: any) => g.name.toLowerCase() === product.genderName?.toLowerCase()
+            )?.productGenderId ?? null;
+
+            setEditingRecord({ ...product, categoryId, genderId });
+            setDrawerOpen(true);
+          } catch {
+            // interceptor handles toast
+          }
+        }}
       />
 
       <DeleteOutlined
@@ -203,6 +223,35 @@ useEffect(() => {
               >
                 Reset Filter
               </Button>
+            )}
+
+            <Select
+              placeholder="Sort By"
+              allowClear
+              style={{ width: 155 }}
+              value={sortBy}
+              onChange={(val) => { setSortBy(val); setPageNumber(1); }}
+              options={[
+                { value: "ProductCode",    label: "Product Code" },
+                { value: "Description",    label: "Description" },
+                { value: "PriceItaly",     label: "Italy Price" },
+                { value: "PriceEU",        label: "EU Price" },
+                { value: "PriceOutsideEU", label: "Outside EU" },
+                { value: "CategoryName",   label: "Category" },
+                { value: "GenderName",     label: "Gender" },
+                { value: "CreatedAt",      label: "Created At" },
+              ]}
+            />
+            {sortBy && (
+              <Select
+                style={{ width: 130 }}
+                value={sortDescending}
+                onChange={setSortDescending}
+                options={[
+                  { value: true,  label: "Descending" },
+                  { value: false, label: "Ascending" },
+                ]}
+              />
             )}
           </Space>
         </Col>

@@ -2,19 +2,15 @@ import { Navigate } from "react-router-dom";
 import { store } from "../app/store";
 import { clearAuth } from "../features/auth/auth.slice";
 
-function isTokenExpired(token: string): boolean {
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.exp * 1000 < Date.now();
-  } catch {
-    return true;
-  }
-}
-
 export default function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const token = localStorage.getItem("token");
+  const token        = localStorage.getItem("token");
+  const refreshToken = localStorage.getItem("refreshToken");
 
-  if (!token || isTokenExpired(token)) {
+  // Allow access if either token is present.
+  // An expired access token is fine — the API interceptor will refresh it
+  // automatically on the next request and retry transparently.
+  // Only redirect when BOTH are gone (logged out or never authenticated).
+  if (!token && !refreshToken) {
     store.dispatch(clearAuth());
     return <Navigate to="/login" replace />;
   }

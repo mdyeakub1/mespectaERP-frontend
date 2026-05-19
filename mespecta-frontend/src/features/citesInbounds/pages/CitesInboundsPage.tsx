@@ -11,11 +11,12 @@ import {
   Form,
   Select,
   DatePicker,
-  message,
 } from "antd";
 import {
   FilterOutlined,
   PlusOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
@@ -37,18 +38,13 @@ const [loadingFilters, setLoadingFilters] = useState(false);
   const { items, totalCount, loading } =
     useAppSelector((state) => state.citesInbounds);
 
-  const [searchText, setSearchText] =
-    useState("");
-  const [pageNumber, setPageNumber] =
-    useState(1);
-  const [pageSize, setPageSize] =
-    useState(10);
-
-  const [filterModalOpen, setFilterModalOpen] =
-    useState(false);
-
-  const [filters, setFilters] =
-    useState<any>({});
+  const [searchText, setSearchText]           = useState("");
+  const [pageNumber, setPageNumber]           = useState(1);
+  const [pageSize, setPageSize]               = useState(10);
+  const [filterModalOpen, setFilterModalOpen] = useState(false);
+  const [filters, setFilters]                 = useState<any>({});
+  const [sortBy, setSortBy]                   = useState<string | undefined>(undefined);
+  const [sortDescending, setSortDescending]   = useState(true);
 
   // ================= FETCH =================
   useEffect(() => {
@@ -58,15 +54,10 @@ const [loadingFilters, setLoadingFilters] = useState(false);
         pageNumber,
         pageSize,
         ...filters,
+        ...(sortBy ? { sortBy, sortDescending } : {}),
       })
     );
-  }, [
-    dispatch,
-    searchText,
-    pageNumber,
-    pageSize,
-    filters,
-  ]);
+  }, [dispatch, searchText, pageNumber, pageSize, filters, sortBy, sortDescending]);
 
   // ================= SEARCH =================
   const handleSearch = (value: string) => {
@@ -98,7 +89,7 @@ const [loadingFilters, setLoadingFilters] = useState(false);
     setLeatherTypes(extract(leatherRes));
     setColors(extract(colorRes));
   } catch {
-    message.error("Failed to load filters");
+    // interceptor handles toast
   } finally {
     setLoadingFilters(false);
   }
@@ -132,6 +123,44 @@ useEffect(() => {
     (value) => value !== undefined && value !== null && value !== ""
   );
 
+  // ================= EXPORT =================
+  const [exportingExcel, setExportingExcel] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  const handleExport = async (type: "excel" | "pdf") => {
+    const setLoading = type === "excel" ? setExportingExcel : setExportingPdf;
+    const ext = type === "excel" ? "xlsx" : "pdf";
+    const mime = type === "excel"
+      ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      : "application/pdf";
+
+    // Build params matching the current table filters
+    const params: Record<string, any> = {};
+    if (searchText)            params.search           = searchText;
+    if (filters.leatherTypeId) params.leatherTypeId    = filters.leatherTypeId;
+    if (filters.colorId)       params.colorId          = filters.colorId;
+    if (filters.fromDate)      params.fromDate         = filters.fromDate;
+    if (filters.toDate)        params.toDate           = filters.toDate;
+
+    try {
+      setLoading(true);
+      const res = await api.get(`/cites-inbounds/export/${type}`, {
+        params,
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(new Blob([res.data], { type: mime }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `cites-inbounds.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // interceptor handles toast
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResetFilter = () => {
     setFilters({});
     setPageNumber(1);
@@ -139,12 +168,16 @@ useEffect(() => {
 
   const columns = [
     {
-      title: "Code",
-      dataIndex: "citesInboundCode",
+      title: "Serial No.",
+      dataIndex: "citesInboundSerialNo",
     },
     {
-      title: "CITES Number",
-      dataIndex: "citesNumber",
+      title: "Date",
+      dataIndex: "issueDate",
+      render: (val: string) => {
+        if (!val) return "-";
+        return new Date(val).toISOString().slice(0, 10);
+      },
     },
     {
       title: "Scientific Name",
@@ -155,22 +188,30 @@ useEffect(() => {
       dataIndex: "commonName",
     },
     {
-      title: "Leather Type",
-      dataIndex: "leatherTypeName",
+      title: "Acquisition Type",
+      dataIndex: "acquisitionTypeName",
     },
     {
-      title: "Color",
-      dataIndex: "colorName",
+      title: "Source / Origin",
+      dataIndex: "sourceName",
+    },
+    {
+      title: "Document Type",
+      dataIndex: "documentTypeName",
+    },
+    {
+      title: "CITES Number",
+      dataIndex: "citesNumber",
+    },
+    {
+      title: "Identification",
+      dataIndex: "identification",
     },
     {
       title: "Quantity",
       dataIndex: "quantityReceived",
-    },
-    {
-      title: "Issue Date",
-      dataIndex: "issueDate",
-      render: (val: string) =>
-        new Date(val).toLocaleDateString(),
+      render: (_: any, record: any) =>
+        `${record.quantityReceived} ${record.unitOfMeasureCode}`,
     },
     {
       title: "",
@@ -179,9 +220,7 @@ useEffect(() => {
         <Button
           type="link"
           onClick={() =>
-            navigate(
-              `/cites-inbounds/${record.citesInboundId}`
-            )
+            navigate(`/cites-inbounds/${record.citesInboundId}`)
           }
         >
           Details
@@ -211,9 +250,7 @@ useEffect(() => {
 
             <Button
               icon={<FilterOutlined />}
-              onClick={() =>
-                setFilterModalOpen(true)
-              }
+              onClick={() => setFilterModalOpen(true)}
             >
               Filter
             </Button>
@@ -223,18 +260,61 @@ useEffect(() => {
                 Reset Filter
               </Button>
             )}
+
+            <Select
+              placeholder="Sort By"
+              allowClear
+              style={{ width: 155 }}
+              value={sortBy}
+              onChange={(val) => { setSortBy(val); setPageNumber(1); }}
+              options={[
+                { value: "SerialNo",      label: "Serial No." },
+                { value: "Date",          label: "Date" },
+                { value: "ScientificName",label: "Scientific Name" },
+                { value: "CommonName",    label: "Common Name" },
+                { value: "CitesNumber",   label: "CITES Number" },
+                { value: "Quantity",      label: "Quantity" },
+              ]}
+            />
+            {sortBy && (
+              <Select
+                style={{ width: 130 }}
+                value={sortDescending}
+                onChange={setSortDescending}
+                options={[
+                  { value: true,  label: "Descending" },
+                  { value: false, label: "Ascending" },
+                ]}
+              />
+            )}
           </Space>
         </Col>
 
         {/* RIGHT */}
         <Col>
-          <Button
-  type="primary"
-  icon={<PlusOutlined />}
-  onClick={() => setAddModalOpen(true)}
->
-  Add New
-</Button>
+          <Space>
+            <Button
+              icon={<FileExcelOutlined />}
+              loading={exportingExcel}
+              onClick={() => handleExport("excel")}
+            >
+              Export Excel
+            </Button>
+            <Button
+              icon={<FilePdfOutlined />}
+              loading={exportingPdf}
+              onClick={() => handleExport("pdf")}
+            >
+              Export PDF
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => setAddModalOpen(true)}
+            >
+              Add New
+            </Button>
+          </Space>
         </Col>
       </Row>
 
@@ -249,7 +329,6 @@ useEffect(() => {
           pageSize,
           total: totalCount,
           showSizeChanger: true,
-          hideOnSinglePage: true,
           showTotal: (total, range) =>
             `${range[0]}-${range[1]} of ${total} records`,
           onChange: (page, size) => {

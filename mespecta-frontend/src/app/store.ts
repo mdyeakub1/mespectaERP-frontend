@@ -8,13 +8,15 @@ import sourcesReducer from "../features/adminSetup/systemValues/sources/sources.
 import unitOfMeasuresReducer from "../features/adminSetup/systemValues/unitOfMeasures/unitOfMeasures.slice";
 import materialCategoriesReducer from "../features/adminSetup/systemValues/materialCategories/materialCategories.slice";
 import productCategoriesReducer from "../features/adminSetup/systemValues/productCategories/productCategories.slice";
+import outboundReasonsReducer from "../features/adminSetup/systemValues/outboundReasons/outboundReasons.slice";
+import outgoingDocumentTypesReducer from "../features/adminSetup/systemValues/outgoingDocumentTypes/outgoingDocumentTypes.slice";
+import destinationsReducer from "../features/adminSetup/systemValues/destinations/destinations.slice";
 import materialsReducer from "../features/materials/materials.slice";
 import productsReducer from "../features/products/products.slice";
-import customersReducer from "../features/customers/customers.slice";
-import suppliersReducer from "../features/suppliers/suppliers.slice";
 import citesInboundsReducer from "../features/citesInbounds/citesInbounds.slice";
+import citesOutboundSoldReducer from "../features/citesOutbounds/citesOutboundSold.slice";
+import citesOutboundStockReducer from "../features/citesOutbounds/citesOutboundStock.slice";
 import productionsReducer from "../features/productions/productions.slice";
-import finishedProductsReducer from "../features/finishedProducts/finishedProducts.slice";
 import craftsmenReducer from "../features/craftsmen/craftsmen.slice";
 import authReducer from "../features/auth/auth.slice";
 import accountReducer from "../features/adminSetup/account/account.slice";
@@ -32,13 +34,15 @@ export const store = configureStore({
     unitOfMeasures: unitOfMeasuresReducer,
     materialCategories: materialCategoriesReducer,
     productCategories: productCategoriesReducer,
+    outboundReasons: outboundReasonsReducer,
+    outgoingDocumentTypes: outgoingDocumentTypesReducer,
+    destinations: destinationsReducer,
     materials:materialsReducer,
     products: productsReducer,
-    customers: customersReducer,
-    suppliers: suppliersReducer,
     citesInbounds: citesInboundsReducer,
+    citesOutboundSold: citesOutboundSoldReducer,
+    citesOutboundStock: citesOutboundStockReducer,
     productions: productionsReducer,
-    finishedProducts: finishedProductsReducer,
     craftsmen: craftsmenReducer,
     account: accountReducer,
   },

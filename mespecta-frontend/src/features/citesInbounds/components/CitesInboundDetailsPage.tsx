@@ -3,56 +3,28 @@ import {
   Card,
   Row,
   Col,
-  Tabs,
   Button,
-  Image,
   Spin,
   Typography,
   Table,
-  Tag,
-  Statistic,
-  Space,
+  Tabs,
 } from "antd";
-import {
-  ArrowLeftOutlined,
-  PrinterOutlined,
-  FileTextOutlined,
-  HistoryOutlined,
-  PaperClipOutlined,
-  CalendarOutlined,
-  NumberOutlined,
-  EyeOutlined,
-  DownloadOutlined,
-} from "@ant-design/icons";
+import { ArrowLeftOutlined, PrinterOutlined, FileTextOutlined, HistoryOutlined, FilePdfOutlined, EditOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../services/api";
+import EditCitesInboundModal from "./EditCitesInboundModal";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div style={{ paddingBottom: 8 }}>
-    <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 1 }}>
+  <div style={{ paddingBottom: 12 }}>
+    <Text type="secondary" style={{ fontSize: 12, display: "block", marginBottom: 2 }}>
       {label}
     </Text>
     <Text style={{ fontSize: 14, fontWeight: 500 }}>{value ?? "-"}</Text>
   </div>
 );
 
-const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-  <Text
-    style={{
-      fontSize: 11,
-      fontWeight: 700,
-      textTransform: "uppercase",
-      letterSpacing: 1,
-      color: "#1677ff",
-      display: "block",
-      marginBottom: 4,
-    }}
-  >
-    {children}
-  </Text>
-);
 
 const formatHours = (hours: number) => {
   const h = Math.floor(hours ?? 0);
@@ -60,270 +32,148 @@ const formatHours = (hours: number) => {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
 
-/* ── Attachments Tab ─────────────────────────────────────────── */
-function AttachmentsTab({ attachments }: { attachments: any[] }) {
-  const columns = [
-    {
-      title: "File Name",
-      dataIndex: "fileName",
-      render: (val: string) => (
-        <Space>
-          <PaperClipOutlined style={{ color: "#1677ff" }} />
-          <Text style={{ fontSize: 13 }}>{val}</Text>
-        </Space>
-      ),
-    },
-    {
-      title: "Type",
-      dataIndex: "contentType",
-      render: (val: string) => <Tag>{val}</Tag>,
-    },
-    {
-      title: "Size",
-      dataIndex: "fileSize",
-      render: (val: number) =>
-        val >= 1024 * 1024
-          ? `${(val / (1024 * 1024)).toFixed(2)} MB`
-          : `${(val / 1024).toFixed(1)} KB`,
-    },
-    {
-      title: "Uploaded At",
-      dataIndex: "uploadedAt",
-      render: (val: string) =>
-        new Date(val).toLocaleDateString("en-GB", {
-          day: "2-digit", month: "short", year: "numeric",
-        }),
-    },
-    {
-      title: "",
-      align: "right" as const,
-      render: (_: any, record: any) => (
-        <Space>
-          {record.viewLink && (
-            <Button size="small" icon={<EyeOutlined />}
-              onClick={() => window.open(record.viewLink, "_blank")}>
-              View
-            </Button>
-          )}
-          {record.downloadLink && (
-            <Button size="small" icon={<DownloadOutlined />}
-              onClick={() => window.open(record.downloadLink, "_blank")}>
-              Download
-            </Button>
-          )}
-        </Space>
-      ),
-    },
-  ];
-
-  return (
-    <Table
-      rowKey="citesInboundAttachmentId"
-      dataSource={attachments}
-      pagination={false}
-      columns={columns}
-      locale={{ emptyText: "No attachments yet" }}
-    />
-  );
-}
-
 export default function CitesInboundDetailsPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [data, setData]               = useState<any>(null);
+  const [loading, setLoading]         = useState(false);
+  const [qrSrc, setQrSrc]             = useState<string | null>(null);
+  const [qrLoading, setQrLoading]     = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [editOpen, setEditOpen]       = useState(false);
 
   useEffect(() => { fetchDetails(); }, [id]);
+  useEffect(() => {
+    if (id) fetchQrCode();
+    return () => { if (qrSrc) URL.revokeObjectURL(qrSrc); };
+  }, [id]);
 
   const fetchDetails = async () => {
     try {
       setLoading(true);
       const res = await api.get(`/cites-inbounds/${id}`);
       setData(res.data.data);
-    } catch (err) {
-      console.error(err);
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  const fetchQrCode = async () => {
+    try {
+      setQrLoading(true);
+      const res = await api.get(`/cites-inbounds/${id}/qrcode`, { responseType: "blob" });
+      setQrSrc(URL.createObjectURL(res.data));
+    } catch { setQrSrc(null); }
+    finally { setQrLoading(false); }
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      setExportingPdf(true);
+      const res = await api.get(`/cites-inbounds/${id}/usage-history/export/pdf`, {
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `usage-history-${id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // silent — could add message.error here if needed
     } finally {
-      setLoading(false);
+      setExportingPdf(false);
     }
   };
 
   const handlePrintQR = () => {
-    if (!data?.qrCode) return;
-    const printWindow = window.open("", "_blank", "width=1000,height=600");
-    if (!printWindow) return;
-    printWindow.document.write(`
-      <html>
-        <head><title>Print QR</title>
-          <style>body{display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}img{width:300px;}</style>
-        </head>
-        <body><img src="${data.qrCode}" /></body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.onload = () => { printWindow.focus(); printWindow.print(); };
+    if (!qrSrc) return;
+    const w = window.open("", "_blank", "width=600,height=600");
+    if (!w) return;
+    w.document.write(`<html><head><title>Print QR</title><style>body{display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}img{width:300px;}</style></head><body><img src="${qrSrc}"/></body></html>`);
+    w.document.close();
+    w.onload = () => { w.focus(); w.print(); };
   };
 
   if (loading || !data)
-    return (
-      <div style={{ display: "flex", justifyContent: "center", paddingTop: 100 }}>
-        <Spin size="large" />
-      </div>
-    );
+    return <div style={{ display: "flex", justifyContent: "center", paddingTop: 100 }}><Spin size="large" /></div>;
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto" }}>
 
-      <Button
-        icon={<ArrowLeftOutlined />}
-        style={{ marginBottom: 16 }}
-        onClick={() => navigate(-1)}
-      >
-        Back
-      </Button>
-
-      {/* ── Hero Header ── */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, #1677ff 0%, #0050b3 100%)",
-          borderRadius: 12,
-          padding: "24px 32px",
-          marginBottom: 24,
-        }}
-      >
-        <Row justify="space-between" align="middle">
-          <Col>
-            <Text style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, letterSpacing: 1 }}>
-              CITES INBOUND
-            </Text>
-            <Title level={3} style={{ color: "#fff", margin: "4px 0 8px" }}>
-              {data.citesInboundCode}
-            </Title>
-            <Space size={8}>
-              <Tag icon={<CalendarOutlined />} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff" }}>
-                {new Date(data.issueDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-              </Tag>
-              <Tag icon={<NumberOutlined />} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff" }}>
-                {data.citesNumber}
-              </Tag>
-              {data.isLiveAnimal && (
-                <Tag color="green" style={{ border: "none" }}>Live Animal</Tag>
-              )}
-            </Space>
-          </Col>
-
-          <Col>
-            <Row gutter={32}>
-              <Col>
-                <Statistic
-                  title={<span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>Quantity</span>}
-                  value={data.quantityReceived}
-                  suffix={<span style={{ fontSize: 14, color: "rgba(255,255,255,0.8)" }}>{data.unitOfMeasureName}</span>}
-                  valueStyle={{ color: "#fff", fontSize: 28 }}
-                />
-              </Col>
-              <Col>
-                <Statistic
-                  title={<span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>Skins</span>}
-                  value={data.numberOfSkins}
-                  valueStyle={{ color: "#fff", fontSize: 28 }}
-                />
-              </Col>
-            </Row>
-          </Col>
-        </Row>
+      {/* ── Sticky Back Button ── */}
+      <div style={{ position: "sticky", top: 0, zIndex: 10, background: "#f5f5f5", paddingBottom: 12, paddingTop: 4 }}>
+        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate(-1)}>
+          Back
+        </Button>
       </div>
 
       <Row gutter={24} style={{ alignItems: "flex-start" }}>
 
-        {/* ── LEFT — single card ── */}
+        {/* ── LEFT — tabbed content ── */}
         <Col span={17}>
           <Card style={{ borderRadius: 12 }}>
             <Tabs
-              defaultActiveKey="1"
+              defaultActiveKey="details"
+              tabBarExtraContent={
+                <Button icon={<EditOutlined />} onClick={() => setEditOpen(true)}>
+                  Edit
+                </Button>
+              }
               items={[
                 {
-                  key: "1",
-                  label: <Space><FileTextOutlined />Details</Space>,
+                  key: "details",
+                  label: <span><FileTextOutlined style={{ marginRight: 6 }} />Details</span>,
                   children: (
-                    <div style={{ maxHeight: "calc(100vh - 400px)", overflowY: "auto", overflowX: "hidden", paddingRight: 4 }}>
-
-                      <SectionLabel>Species</SectionLabel>
-                      <Row gutter={32} style={{ marginTop: 8, marginBottom: 16 }}>
-                        <Col span={12}><Field label="Scientific Name" value={data.scientificName} /></Col>
-                        <Col span={12}><Field label="Common Name" value={data.commonName} /></Col>
-                        <Col span={12}><Field label="Leather Type" value={data.leatherTypeName} /></Col>
-                        <Col span={12}><Field label="Color" value={data.colorName} /></Col>
-                      </Row>
-
-                      <SectionLabel>Quantity</SectionLabel>
-                      <Row gutter={32} style={{ marginTop: 8, marginBottom: 16 }}>
-                        <Col span={12}>
-                          <Field label="Quantity Received" value={`${data.quantityReceived ?? "-"} ${data.unitOfMeasureName ?? ""}`} />
-                        </Col>
-                        <Col span={12}><Field label="Number of Skins" value={data.numberOfSkins} /></Col>
-                      </Row>
-
-                      <SectionLabel>Documentation</SectionLabel>
-                      <Row gutter={32} style={{ marginTop: 8, marginBottom: 16 }}>
-                        <Col span={12}><Field label="CITES Number" value={data.citesNumber} /></Col>
-                        <Col span={12}><Field label="Issue Date" value={new Date(data.issueDate).toLocaleDateString()} /></Col>
-                        <Col span={12}><Field label="Document Type" value={data.documentTypeName} /></Col>
-                        <Col span={12}><Field label="Acquisition Type" value={data.acquisitionTypeName} /></Col>
-                        <Col span={12}><Field label="Source" value={data.sourceName} /></Col>
-                        <Col span={12}>
-                          <Field
-                            label="Live Animal"
-                            value={data.isLiveAnimal ? <Tag color="green">Yes</Tag> : <Tag color="red">No</Tag>}
-                          />
-                        </Col>
-                      </Row>
-
-                      <SectionLabel>Notes</SectionLabel>
-                      <Row gutter={32} style={{ marginTop: 8 }}>
-                        <Col span={24}><Field label="CITES Details" value={data.citesDetails} /></Col>
-                        <Col span={24}><Field label="Notes" value={data.notes} /></Col>
-                      </Row>
-
-                    </div>
+                    <Row gutter={32}>
+                      <Col span={12}><Field label="Scientific Name"  value={data.scientificName} /></Col>
+                      <Col span={12}><Field label="Common Name"      value={data.commonName} /></Col>
+                      <Col span={12}><Field label="Leather Type"     value={data.leatherTypeName} /></Col>
+                      <Col span={12}><Field label="Color"            value={data.colorName} /></Col>
+                      <Col span={12}><Field label="Quantity Received" value={data.quantityReceived} /></Col>
+                      <Col span={12}><Field label="Unit of Measure"  value={data.unitOfMeasureName} /></Col>
+                      <Col span={12}><Field label="Number of Skins"  value={data.numberOfSkins} /></Col>
+                      <Col span={12}><Field label="CITES Number"     value={data.citesNumber} /></Col>
+                      <Col span={12}><Field label="Issue Date"       value={new Date(data.issueDate).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })} /></Col>
+                      <Col span={12}><Field label="Document Type"    value={data.documentTypeName} /></Col>
+                      <Col span={12}><Field label="Acquisition Type" value={data.acquisitionTypeName} /></Col>
+                      <Col span={12}><Field label="Source"           value={data.sourceName} /></Col>
+                      <Col span={12}><Field label="Identification"   value={data.identification} /></Col>
+                      <Col span={24}><Field label="CITES Details"    value={data.citesDetails} /></Col>
+                      <Col span={24}><Field label="Notes"            value={data.notes} /></Col>
+                    </Row>
                   ),
                 },
-
                 {
-                  key: "2",
-                  label: <Space><HistoryOutlined />Usage History</Space>,
+                  key: "usage",
+                  label: <span><HistoryOutlined style={{ marginRight: 6 }} />Usage History</span>,
                   children: (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "flex-start", marginBottom: 12 }}>
+                        <Button
+                          icon={<FilePdfOutlined />}
+                          loading={exportingPdf}
+                          onClick={handleExportPdf}
+                        >
+                          Export PDF
+                        </Button>
+                      </div>
                     <Table
-                      rowKey="productionCode"
+                      rowKey="outboundSerialNumber"
                       dataSource={data.usageHistories || []}
-                      pagination={false}
-                      style={{ marginTop: 8 }}
+                      pagination={{ pageSize: 10, hideOnSinglePage: true }}
+                      size="small"
                       columns={[
-                        { title: "Production Code", dataIndex: "productionCode" },
-                        { title: "Product", dataIndex: "productCode" },
-                        { title: "Qty Used", dataIndex: "quantityUsed" },
-                        { title: "Unit", dataIndex: "unitOfMeasureName" },
-                        {
-                          title: "Used Date",
-                          dataIndex: "usedDate",
-                          render: (val: string) => new Date(val).toLocaleDateString(),
-                        },
-                        {
-                          title: "Working Hours",
-                          dataIndex: "totalWorkingHours",
-                          render: (val: number) => formatHours(val),
-                        },
-                        { title: "Notes", dataIndex: "notes" },
+                        { title: "Outbound Serial No.", dataIndex: "outboundSerialNumber" },
+                        { title: "Product",             dataIndex: "productCode" },
+                        { title: "Qty Used",            dataIndex: "quantityUsed" },
+                        { title: "Unit",                dataIndex: "unitOfMeasureName" },
+                        { title: "Used Date",           dataIndex: "usedDate",          render: (val: string) => new Date(val).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) },
+                        { title: "Working Hours",       dataIndex: "totalWorkingHours", render: (val: number) => formatHours(val) },
+                        { title: "Notes",               dataIndex: "notes" },
                       ]}
                     />
-                  ),
-                },
-
-                {
-                  key: "3",
-                  label: <Space><PaperClipOutlined />Attachments</Space>,
-                  children: (
-                    <AttachmentsTab attachments={data.attachments || []} />
+                    </>
                   ),
                 },
               ]}
@@ -331,21 +181,18 @@ export default function CitesInboundDetailsPage() {
           </Card>
         </Col>
 
-        {/* ── RIGHT QR ── */}
+        {/* ── RIGHT — QR ── */}
         <Col span={7}>
           <Card style={{ borderRadius: 12, textAlign: "center" }}>
-            <Text
-              style={{
-                fontSize: 11, fontWeight: 700, textTransform: "uppercase",
-                letterSpacing: 1, color: "#1677ff", display: "block", marginBottom: 16,
-              }}
-            >
+            <Text style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, color: "#1677ff", display: "block", marginBottom: 16 }}>
               QR Code
             </Text>
 
-            {data.qrCode ? (
-              <div id="qr-print-area" style={{ background: "#f8fafc", borderRadius: 8, padding: 16, marginBottom: 12 }}>
-                <Image src={data.qrCode} preview={false} />
+            {qrLoading ? (
+              <div style={{ padding: "40px 0" }}><Spin /></div>
+            ) : qrSrc ? (
+              <div style={{ background: "#f8fafc", borderRadius: 8, padding: 16, marginBottom: 12 }}>
+                <img src={qrSrc} alt="QR Code" style={{ width: "100%", maxWidth: 220 }} />
               </div>
             ) : (
               <div style={{ background: "#fafafa", borderRadius: 8, padding: "40px 0", color: "#bfbfbf", fontSize: 13, marginBottom: 12 }}>
@@ -358,13 +205,22 @@ export default function CitesInboundDetailsPage() {
               icon={<PrinterOutlined />}
               style={{ width: "100%", borderRadius: 8 }}
               onClick={handlePrintQR}
-              disabled={!data.qrCode}
+              disabled={!qrSrc}
             >
               Print QR
             </Button>
           </Card>
         </Col>
+
       </Row>
+
+      <EditCitesInboundModal
+        open={editOpen}
+        id={id!}
+        data={data}
+        onClose={() => setEditOpen(false)}
+        onSuccess={fetchDetails}
+      />
     </div>
   );
 }

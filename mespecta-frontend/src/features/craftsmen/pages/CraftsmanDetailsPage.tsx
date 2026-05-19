@@ -39,7 +39,7 @@ export default function CraftsmanDetailsPage() {
   const data = details;
 
   const columns = [
-    { title: "Production Code", dataIndex: "productionCode" },
+    { title: "Outbound Serial No.", dataIndex: "outboundSerialNumber" },
     { title: "Product", dataIndex: "productCode" },
     { title: "CITES", dataIndex: "citesNumber" },
     { title: "Leather", dataIndex: "leatherTypeName" },
@@ -63,12 +63,12 @@ export default function CraftsmanDetailsPage() {
     {
       title: "Status",
       dataIndex: "status",
-      render: (val: number) => {
+      render: (val: number | string) => {
         switch (val) {
-          case 1: return <Tag color="processing">In Progress</Tag>;
-          case 2: return <Tag color="warning">Paused</Tag>;
-          case 3: return <Tag color="success">Completed</Tag>;
-          default: return <Tag>Unknown</Tag>;
+          case 1: case "InProgress": case "In Progress": return <Tag color="processing">In Progress</Tag>;
+          case 2: case "Paused":                         return <Tag color="warning">Paused</Tag>;
+          case 3: case "Completed":                      return <Tag color="success">Completed</Tag>;
+          default:                                       return <Tag>{String(val)}</Tag>;
         }
       },
     },
@@ -162,7 +162,7 @@ export default function CraftsmanDetailsPage() {
         </Text>
 
         <Table
-          rowKey="productionCode"
+          rowKey="outboundSerialNumber"
           columns={columns}
           dataSource={data.productions || []}
           pagination={{ pageSize: 10, hideOnSinglePage: true }}
