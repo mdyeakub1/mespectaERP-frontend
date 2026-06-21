@@ -223,81 +223,49 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
           </Col>
         </Row>
 
-        {/* ── Leathers (max 1) ── */}
+        {/* ── Leather (always visible, single entry) ── */}
         <SectionLabel>Leather</SectionLabel>
 
-        <Form.List name="leathers">
-          {(fields, { add, remove }) => (
-            <>
-              {fields.map(({ key, name, ...restField }) => (
-                <Row gutter={12} key={key} style={{ marginBottom: 8 }}>
-                  <Col span={6}>
-                    <Form.Item
-                      {...restField}
-                      name={[name, "leatherTypeId"]}
-                      rules={[{ required: true, message: "Required" }]}
-                    >
-                      <Select placeholder="Leather Type">
-                        {leatherTypes.map((l) => (
-                          <Select.Option key={l.leatherTypeId} value={l.leatherTypeId}>
-                            {l.name}
-                          </Select.Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
+        <Row gutter={12} style={{ marginBottom: 8 }}>
+          <Col span={6}>
+            <Form.Item name={["leathers", 0, "leatherTypeId"]}>
+              <Select placeholder="Leather Type">
+                {leatherTypes.map((l) => (
+                  <Select.Option key={l.leatherTypeId} value={l.leatherTypeId}>
+                    {l.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
 
-                  <Col span={4}>
-                    <Form.Item
-                      {...restField}
-                      name={[name, "quantityRequired"]}
-                      rules={[{ validator: qtyValidator }]}
-                    >
-                      <Input placeholder="Qty" style={{ width: "100%" }} />
-                    </Form.Item>
-                  </Col>
+          <Col span={4}>
+            <Form.Item
+              name={["leathers", 0, "quantityRequired"]}
+              rules={[{ validator: qtyValidator }]}
+            >
+              <Input placeholder="Qty" style={{ width: "100%" }} />
+            </Form.Item>
+          </Col>
 
-                  <Col span={4}>
-                    <Form.Item {...restField} name={[name, "unitOfMeasureId"]}>
-                      <Select placeholder="Unit">
-                        {units.map((u) => (
-                          <Select.Option key={u.unitOfMeasureId} value={u.unitOfMeasureId}>
-                            {u.name}
-                          </Select.Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
+          <Col span={4}>
+            <Form.Item name={["leathers", 0, "unitOfMeasureId"]}>
+              <Select placeholder="Unit">
+                {units.map((u) => (
+                  <Select.Option key={u.unitOfMeasureId} value={u.unitOfMeasureId}>
+                    {u.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Col>
 
-                  <Col span={8}>
-                    <Form.Item {...restField} name={[name, "note"]}>
-                      <Input placeholder="Note" />
-                    </Form.Item>
-                  </Col>
-
-                  <Col span={2}>
-                    <MinusCircleOutlined
-                      onClick={() => remove(name)}
-                      style={{ marginTop: 8, color: "red" }}
-                    />
-                  </Col>
-                </Row>
-              ))}
-
-              {fields.length === 0 && (
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  icon={<PlusOutlined />}
-                  block
-                  style={{ marginBottom: 16 }}
-                >
-                  Add Leather
-                </Button>
-              )}
-            </>
-          )}
-        </Form.List>
+          <Col span={10}>
+            <Form.Item name={["leathers", 0, "note"]}>
+              <Input placeholder="Note" />
+            </Form.Item>
+          </Col>
+        </Row>
 
         {/* ── Materials ── */}
         <SectionLabel>Materials</SectionLabel>
