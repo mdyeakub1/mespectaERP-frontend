@@ -40,10 +40,11 @@ const qtyValidator = (_: unknown, value: string) => {
 interface Props {
   open: boolean;
   initialData?: any;
+  params?: any;
   onClose: () => void;
 }
 
-export default function ProductDrawer({ open, initialData, onClose }: Props) {
+export default function ProductDrawer({ open, initialData, params, onClose }: Props) {
   const dispatch = useAppDispatch();
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
@@ -112,11 +113,11 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
       setSubmitting(true);
 
       if (initialData) {
-        await dispatch(editProduct({ id: initialData.productId, data: values })).unwrap();
+        await dispatch(editProduct({ id: initialData.productId, data: values, params })).unwrap();
         message.success("Product updated successfully");
         onClose();
       } else {
-        await dispatch(addProduct(values)).unwrap();
+        await dispatch(addProduct({ data: values, params })).unwrap();
         message.success("Product created successfully");
         form.resetFields();
         onClose();

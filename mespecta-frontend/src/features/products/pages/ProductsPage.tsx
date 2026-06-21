@@ -340,6 +340,7 @@ useEffect(() => {
       <ProductDrawer
         open={drawerOpen}
         initialData={editingRecord}
+        params={{ search, pageNumber, pageSize, ...filters, ...(sortBy ? { sortBy, sortDescending } : {}) }}
         onClose={() => setDrawerOpen(false)}
       />
 

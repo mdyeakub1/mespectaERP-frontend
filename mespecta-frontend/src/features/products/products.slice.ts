@@ -46,10 +46,10 @@ export const fetchProductById = createAsyncThunk(
 
 export const addProduct = createAsyncThunk(
   "products/add",
-  async (data: any, { rejectWithValue }) => {
+  async ({ data, params }: { data: any; params?: any }, { rejectWithValue }) => {
     try {
       await createProduct(data);
-      return await getProducts();
+      return await getProducts(params);
     } catch (error: any) {
       return rejectWithValue(extractError(error, "Failed to create product"));
     }
@@ -58,10 +58,10 @@ export const addProduct = createAsyncThunk(
 
 export const editProduct = createAsyncThunk(
   "products/edit",
-  async ({ id, data }: { id: number; data: any }, { rejectWithValue }) => {
+  async ({ id, data, params }: { id: number; data: any; params?: any }, { rejectWithValue }) => {
     try {
       await updateProduct(id, data);
-      return await getProducts();
+      return await getProducts(params);
     } catch (error: any) {
       return rejectWithValue(extractError(error, "Failed to update product"));
     }
