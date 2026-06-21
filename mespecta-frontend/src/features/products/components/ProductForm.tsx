@@ -30,6 +30,13 @@ import { fetchUnitOfMeasures } from "../../adminSetup/systemValues/unitOfMeasure
 import { fetchProductCategories } from "../../adminSetup/systemValues/productCategories/productCategories.slice";
 import api from "../../../services/api";
 
+const qtyValidator = (_: unknown, value: string) => {
+  if (!value) return Promise.resolve();
+  const num = parseFloat(value);
+  if (isNaN(num) || num <= 0) return Promise.reject("Must be greater than 0.");
+  return Promise.resolve();
+};
+
 interface Props {
   open: boolean;
   initialData?: any;
@@ -46,6 +53,7 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
   const { data: categories } = useAppSelector((state) => state.productCategories);
 
   const [genders, setGenders] = useState<any[]>([]);
+  const [leatherTypes, setLeatherTypes] = useState<any[]>([]);
 
   useEffect(() => {
     dispatch(fetchMaterials({}));
@@ -54,16 +62,20 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
   }, [dispatch]);
 
   useEffect(() => {
-    const fetchGenders = async () => {
+    const fetchDropdowns = async () => {
       try {
-        const response = await api.get("/product-genders");
-        setGenders(response.data.data);
+        const [gRes, lRes] = await Promise.all([
+          api.get("/product-genders"),
+          api.get("/leather-types"),
+        ]);
+        setGenders(gRes.data.data ?? gRes.data);
+        const lt = lRes.data?.data?.items ?? lRes.data?.data ?? lRes.data;
+        setLeatherTypes(Array.isArray(lt) ? lt : []);
       } catch {
         // interceptor handles toast
       }
     };
-
-    fetchGenders();
+    fetchDropdowns();
   }, []);
 
   useEffect(() => {
@@ -76,11 +88,17 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
         priceItaly:     initialData.priceItaly,
         priceEU:        initialData.priceEU,
         priceOutsideEU: initialData.priceOutsideEU,
-        materials: initialData.materials?.map((m: any) => ({
+        materials: (initialData.materials ?? []).map((m: any) => ({
           materialId:       m.materialId,
-          quantityRequired: m.quantityRequired,
+          quantityRequired: m.quantityRequired != null ? String(m.quantityRequired) : "",
           unitOfMeasureId:  m.unitOfMeasureId,
           note:             m.note ?? "",
+        })),
+        leathers: (initialData.leathers ?? []).map((l: any) => ({
+          leatherTypeId:    l.leatherTypeId,
+          quantityRequired: l.quantityRequired != null ? String(l.quantityRequired) : "",
+          unitOfMeasureId:  l.unitOfMeasureId,
+          note:             l.note ?? "",
         })),
       });
     } else {
@@ -94,12 +112,7 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
       setSubmitting(true);
 
       if (initialData) {
-        await dispatch(
-          editProduct({
-            id: initialData.productId,
-            data: values,
-          })
-        ).unwrap();
+        await dispatch(editProduct({ id: initialData.productId, data: values })).unwrap();
         message.success("Product updated successfully");
         onClose();
       } else {
@@ -150,10 +163,7 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
           </Col>
 
           <Col span={12}>
-            <Form.Item
-              label="Description"
-              name="description"
-            >
+            <Form.Item label="Description" name="description">
               <Input />
             </Form.Item>
           </Col>
@@ -168,10 +178,7 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
             >
               <Select placeholder="Select category">
                 {categories.map((cat) => (
-                  <Select.Option
-                    key={cat.productCategoryId}
-                    value={cat.productCategoryId}
-                  >
+                  <Select.Option key={cat.productCategoryId} value={cat.productCategoryId}>
                     {cat.name}
                   </Select.Option>
                 ))}
@@ -186,15 +193,11 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
               rules={[{ required: true, message: "Gender is required" }]}
             >
               <Select placeholder="Select gender">
-                {genders
-                  .map((g) => (
-                    <Select.Option
-                      key={g.productGenderId}
-                      value={g.productGenderId}
-                    >
-                      {g.name}
-                    </Select.Option>
-                  ))}
+                {genders.map((g) => (
+                  <Select.Option key={g.productGenderId} value={g.productGenderId}>
+                    {g.name}
+                  </Select.Option>
+                ))}
               </Select>
             </Form.Item>
           </Col>
@@ -220,8 +223,7 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
           </Col>
         </Row>
 
-        
-
+        {/* ── Materials ── */}
         <SectionLabel>Materials</SectionLabel>
 
         <Form.List name="materials">
@@ -233,14 +235,11 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
                     <Form.Item
                       {...restField}
                       name={[name, "materialId"]}
-                      rules={[{ required: true, message: "Material required" }]}
+                      rules={[{ required: true, message: "Required" }]}
                     >
                       <Select placeholder="Material">
                         {materials.map((m) => (
-                          <Select.Option
-                            key={m.materialId}
-                            value={m.materialId}
-                          >
+                          <Select.Option key={m.materialId} value={m.materialId}>
                             {m.materialName}
                           </Select.Option>
                         ))}
@@ -252,25 +251,17 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
                     <Form.Item
                       {...restField}
                       name={[name, "quantityRequired"]}
+                      rules={[{ validator: qtyValidator }]}
                     >
-                      <InputNumber
-                        placeholder="Qty"
-                        style={{ width: "100%" }}
-                      />
+                      <Input placeholder="Qty" style={{ width: "100%" }} />
                     </Form.Item>
                   </Col>
 
                   <Col span={4}>
-                    <Form.Item
-                      {...restField}
-                      name={[name, "unitOfMeasureId"]}
-                    >
+                    <Form.Item {...restField} name={[name, "unitOfMeasureId"]}>
                       <Select placeholder="Unit">
                         {units.map((u) => (
-                          <Select.Option
-                            key={u.unitOfMeasureId}
-                            value={u.unitOfMeasureId}
-                          >
+                          <Select.Option key={u.unitOfMeasureId} value={u.unitOfMeasureId}>
                             {u.name}
                           </Select.Option>
                         ))}
@@ -301,6 +292,80 @@ export default function ProductDrawer({ open, initialData, onClose }: Props) {
                 style={{ marginBottom: 16 }}
               >
                 Add Material
+              </Button>
+            </>
+          )}
+        </Form.List>
+
+        {/* ── Leathers ── */}
+        <SectionLabel>Leathers</SectionLabel>
+
+        <Form.List name="leathers">
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map(({ key, name, ...restField }) => (
+                <Row gutter={12} key={key} style={{ marginBottom: 8 }}>
+                  <Col span={6}>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "leatherTypeId"]}
+                      rules={[{ required: true, message: "Required" }]}
+                    >
+                      <Select placeholder="Leather Type">
+                        {leatherTypes.map((l) => (
+                          <Select.Option key={l.leatherTypeId} value={l.leatherTypeId}>
+                            {l.name}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={4}>
+                    <Form.Item
+                      {...restField}
+                      name={[name, "quantityRequired"]}
+                      rules={[{ validator: qtyValidator }]}
+                    >
+                      <Input placeholder="Qty" style={{ width: "100%" }} />
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={4}>
+                    <Form.Item {...restField} name={[name, "unitOfMeasureId"]}>
+                      <Select placeholder="Unit">
+                        {units.map((u) => (
+                          <Select.Option key={u.unitOfMeasureId} value={u.unitOfMeasureId}>
+                            {u.name}
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={8}>
+                    <Form.Item {...restField} name={[name, "note"]}>
+                      <Input placeholder="Note" />
+                    </Form.Item>
+                  </Col>
+
+                  <Col span={2}>
+                    <MinusCircleOutlined
+                      onClick={() => remove(name)}
+                      style={{ marginTop: 8, color: "red" }}
+                    />
+                  </Col>
+                </Row>
+              ))}
+
+              <Button
+                type="dashed"
+                onClick={() => add()}
+                icon={<PlusOutlined />}
+                block
+                style={{ marginBottom: 16 }}
+              >
+                Add Leather
               </Button>
             </>
           )}

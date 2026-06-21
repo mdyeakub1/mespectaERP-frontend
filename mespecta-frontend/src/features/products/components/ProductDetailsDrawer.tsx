@@ -85,6 +85,21 @@ export default function ProductDetailsDrawer({
             dataSource={details?.materials || []}
             pagination={false}
           />
+
+          <h3 style={{ marginTop: 20 }}>Leathers</h3>
+
+          <Table
+            size="small"
+            rowKey="productLeatherId"
+            columns={[
+              { title: "Leather Type", dataIndex: "leatherTypeName" },
+              { title: "Qty", dataIndex: "quantityRequired" },
+              { title: "Unit", dataIndex: "unitOfMeasureName" },
+              { title: "Note", dataIndex: "note" },
+            ]}
+            dataSource={details?.leathers || []}
+            pagination={false}
+          />
         </>
       )}
     </Drawer>
