@@ -123,11 +123,15 @@ useEffect(() => {
   const columns = [
     { title: "Code", dataIndex: "productCode" },
     { title: "Description", dataIndex: "description" },
-    { title: "Italy Price", dataIndex: "priceItaly" },
-    { title: "EU Price", dataIndex: "priceEU" },
-    { title: "Outside EU", dataIndex: "priceOutsideEU" },
     { title: "Category", dataIndex: "categoryName" },
     { title: "Gender", dataIndex: "genderName" },
+    { title: "Leather Type", render: (_: any, r: any) => r.leathers?.[0]?.leatherTypeName ?? "-" },
+    { title: "Leather Qty",  render: (_: any, r: any) => r.leathers?.[0]?.quantityRequired ?? "-" },
+    { title: "UOM",          render: (_: any, r: any) => r.leathers?.[0]?.unitOfMeasureName ?? "-" },
+    { title: "Note",         render: (_: any, r: any) => r.leathers?.[0]?.note || "-" },
+    { title: "Italy Price",  dataIndex: "priceItaly" },
+    { title: "EU Price",     dataIndex: "priceEU" },
+    { title: "Outside EU",   dataIndex: "priceOutsideEU" },
     {
   title: "",
   align: "right" as const,
