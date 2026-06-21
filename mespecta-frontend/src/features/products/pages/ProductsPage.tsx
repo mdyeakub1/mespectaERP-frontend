@@ -17,6 +17,8 @@ import {
   DeleteOutlined,
   PlusOutlined,
   FilterOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
 } from "@ant-design/icons";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import {
@@ -54,6 +56,8 @@ const [detailsId, setDetailsId] = useState<number | null>(null);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [genders, setGenders] = useState<any[]>([]);
+  const [exportingExcel, setExportingExcel] = useState(false);
+  const [exportingPdf, setExportingPdf]     = useState(false);
 
   const [form] = Form.useForm();
 
@@ -113,6 +117,26 @@ useEffect(() => {
       setDeleteModalOpen(false);
     } catch {
       // interceptor handles toast
+    }
+  };
+
+  const handleExport = async (format: "excel" | "pdf") => {
+    const setLoading = format === "excel" ? setExportingExcel : setExportingPdf;
+    const ext        = format === "excel" ? "xlsx" : "pdf";
+    const mime       = format === "excel" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "application/pdf";
+    try {
+      setLoading(true);
+      const res = await api.get(`/products/export/${format}`, { responseType: "blob" });
+      const url  = URL.createObjectURL(new Blob([res.data], { type: mime }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `products.${ext}`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // interceptor handles toast
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -215,6 +239,22 @@ useEffect(() => {
               onClick={() => setFilterOpen(true)}
             >
               Filter
+            </Button>
+
+            <Button
+              icon={<FileExcelOutlined />}
+              loading={exportingExcel}
+              onClick={() => handleExport("excel")}
+            >
+              Export Excel
+            </Button>
+
+            <Button
+              icon={<FilePdfOutlined />}
+              loading={exportingPdf}
+              onClick={() => handleExport("pdf")}
+            >
+              Export PDF
             </Button>
 
             {isFilterActive && (
