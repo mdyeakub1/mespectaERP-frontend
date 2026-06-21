@@ -1,7 +1,27 @@
-import { Drawer, Descriptions, Table, Spin } from "antd";
+import { Drawer, Row, Col, Table, Spin, Typography, Tag } from "antd";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { fetchProductById } from "../products.slice";
+
+const { Text } = Typography;
+
+const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
+  <div style={{ paddingBottom: 14 }}>
+    <Text type="secondary" style={{ fontSize: 11, display: "block", marginBottom: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>
+      {label}
+    </Text>
+    <Text style={{ fontSize: 14, fontWeight: 500 }}>{value ?? "-"}</Text>
+  </div>
+);
+
+const SectionLabel = ({ children }: { children: string }) => (
+  <div style={{ margin: "16px 0 12px" }}>
+    <Text style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "#1677ff" }}>
+      {children}
+    </Text>
+    <div style={{ height: 1, background: "#e8f0fe", marginTop: 4 }} />
+  </div>
+);
 
 interface Props {
   open: boolean;
@@ -9,96 +29,111 @@ interface Props {
   onClose: () => void;
 }
 
-export default function ProductDetailsDrawer({
-  open,
-  productId,
-  onClose,
-}: Props) {
+export default function ProductDetailsDrawer({ open, productId, onClose }: Props) {
   const dispatch = useAppDispatch();
-  const { details, detailsLoading } = useAppSelector(
-    (state) => state.products
-  );
+  const { details, detailsLoading } = useAppSelector((state) => state.products);
 
   useEffect(() => {
-    if (open && productId) {
-      dispatch(fetchProductById(productId));
-    }
+    if (open && productId) dispatch(fetchProductById(productId));
   }, [open, productId, dispatch]);
 
   return (
     <Drawer
-      title="Product Details"
-      width={600}
+      title={
+        <span>
+          Product Details
+          {details?.productCode && (
+            <Tag color="blue" style={{ marginLeft: 10, fontWeight: 600 }}>
+              {details.productCode}
+            </Tag>
+          )}
+        </span>
+      }
+      width={750}
       open={open}
       onClose={onClose}
       destroyOnHidden
     >
       {detailsLoading ? (
-        <Spin />
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 60 }}>
+          <Spin size="large" />
+        </div>
       ) : (
         <>
-          <Descriptions
-            column={1}
-            bordered
-            size="small"
-          >
-            <Descriptions.Item label="Code">
-              {details?.productCode}
-            </Descriptions.Item>
+          {/* ── Product Info ── */}
+          <SectionLabel>Product Information</SectionLabel>
 
-            <Descriptions.Item label="Description">
-              {details?.description}
-            </Descriptions.Item>
+          <Row gutter={24}>
+            <Col span={12}>
+              <Field label="Product Code" value={details?.productCode} />
+            </Col>
+            <Col span={12}>
+              <Field label="Description" value={details?.description} />
+            </Col>
+            <Col span={12}>
+              <Field label="Category" value={details?.categoryName} />
+            </Col>
+            <Col span={12}>
+              <Field label="Gender" value={details?.genderName} />
+            </Col>
+          </Row>
 
-            <Descriptions.Item label="Italy Price">
-              {details?.priceItaly}
-            </Descriptions.Item>
+          {/* ── Prices ── */}
+          <SectionLabel>Prices</SectionLabel>
 
-            <Descriptions.Item label="EU Price">
-              {details?.priceEU}
-            </Descriptions.Item>
+          <Row gutter={24}>
+            <Col span={8}>
+              <Field
+                label="Price Italy"
+                value={details?.priceItaly != null ? `€ ${details.priceItaly}` : null}
+              />
+            </Col>
+            <Col span={8}>
+              <Field
+                label="Price EU"
+                value={details?.priceEU != null ? `€ ${details.priceEU}` : null}
+              />
+            </Col>
+            <Col span={8}>
+              <Field
+                label="Price Outside EU"
+                value={details?.priceOutsideEU != null ? `€ ${details.priceOutsideEU}` : null}
+              />
+            </Col>
+          </Row>
 
-            <Descriptions.Item label="Outside EU">
-              {details?.priceOutsideEU}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Category">
-              {details?.categoryName}
-            </Descriptions.Item>
-
-            <Descriptions.Item label="Gender">
-              {details?.genderName}
-            </Descriptions.Item>
-          </Descriptions>
-
-          <h3 style={{ marginTop: 20 }}>CITES Leather</h3>
+          {/* ── CITES Leather ── */}
+          <SectionLabel>CITES Leather</SectionLabel>
 
           <Table
             size="small"
             rowKey="productLeatherId"
             columns={[
-              { title: "Leather Type", dataIndex: "leatherTypeName" },
-              { title: "Qty", dataIndex: "quantityRequired" },
-              { title: "Unit", dataIndex: "unitOfMeasureName" },
-              { title: "Note", dataIndex: "note" },
+              { title: "Leather Type",  dataIndex: "leatherTypeName",  ellipsis: true },
+              { title: "Required Qty",  dataIndex: "quantityRequired",  width: 110 },
+              { title: "Unit",          dataIndex: "unitOfMeasureName", width: 80 },
+              { title: "Note",          dataIndex: "note",              ellipsis: true, render: (v: string) => v || "-" },
             ]}
             dataSource={details?.leathers || []}
             pagination={false}
+            locale={{ emptyText: "No leather specified" }}
           />
 
-          <h3 style={{ marginTop: 20 }}>Materials</h3>
+          {/* ── Materials ── */}
+          <SectionLabel>Materials</SectionLabel>
 
           <Table
             size="small"
             rowKey="productMaterialId"
             columns={[
-              { title: "Material", dataIndex: "materialName" },
-              { title: "Qty", dataIndex: "quantityRequired" },
-              { title: "Unit", dataIndex: "unitOfMeasureName" },
-              { title: "Note", dataIndex: "note" },
+              { title: "Material",      dataIndex: "materialName",      ellipsis: true },
+              { title: "Required Qty",  dataIndex: "quantityRequired",  width: 110 },
+              { title: "Unit",          dataIndex: "unitOfMeasureName", width: 80 },
+              { title: "Note",          dataIndex: "note",              ellipsis: true, render: (v: string) => v || "-" },
             ]}
             dataSource={details?.materials || []}
             pagination={false}
+            locale={{ emptyText: "No materials specified" }}
           />
         </>
       )}
