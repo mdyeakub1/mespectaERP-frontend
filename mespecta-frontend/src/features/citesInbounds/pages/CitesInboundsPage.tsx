@@ -28,9 +28,10 @@ export default function CitesInboundsPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
+  const [filterForm] = Form.useForm();
   const [leatherTypes, setLeatherTypes] = useState<any[]>([]);
-const [colors, setColors] = useState<any[]>([]);
-const [loadingFilters, setLoadingFilters] = useState(false);
+  const [colors, setColors] = useState<any[]>([]);
+  const [loadingFilters, setLoadingFilters] = useState(false);
 
   const [addModalOpen, setAddModalOpen] =
   useState(false);
@@ -104,19 +105,14 @@ useEffect(() => {
   // ================= FILTER =================
   const handleApplyFilter = (values: any) => {
     setPageNumber(1);
-
     setFilters({
       leatherTypeId: values.leatherTypeId,
       colorId: values.colorId,
-      fromDate: values.dateRange
-        ? values.dateRange[0].toISOString()
-        : undefined,
-      toDate: values.dateRange
-        ? values.dateRange[1].toISOString()
-        : undefined,
+      fromDate: values.dateRange ? values.dateRange[0].toISOString() : undefined,
+      toDate:   values.dateRange ? values.dateRange[1].toISOString() : undefined,
     });
-
     setFilterModalOpen(false);
+    filterForm.resetFields();
   };
 
   const isFilterActive = Object.values(filters).some(
@@ -352,6 +348,7 @@ useEffect(() => {
 >
   <Form
     layout="vertical"
+    form={filterForm}
     onFinish={handleApplyFilter}
   >
     <Form.Item

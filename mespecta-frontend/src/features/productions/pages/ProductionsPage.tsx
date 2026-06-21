@@ -49,6 +49,7 @@ export default function ProductionsPage() {
 
     
 
+  const [filterForm] = Form.useForm();
   const [searchTerm, setSearchTerm]           = useState("");
   const [pageNumber, setPageNumber]           = useState(1);
   const [pageSize, setPageSize]               = useState(10);
@@ -135,6 +136,7 @@ export default function ProductionsPage() {
     });
 
     setFilterOpen(false);
+    filterForm.resetFields();
   };
 
   const isFilterActive = Object.values(filters).some(
@@ -299,7 +301,7 @@ export default function ProductionsPage() {
         onCancel={() => setFilterOpen(false)}
         footer={null}
       >
-        <Form layout="vertical" onFinish={handleApplyFilter}>
+        <Form layout="vertical" form={filterForm} onFinish={handleApplyFilter}>
           <Form.Item name="status" label="Status">
             <Select allowClear>
               <Select.Option value={1}>

@@ -410,6 +410,7 @@ useEffect(() => {
               genderId: values.genderId,
             });
             setFilterOpen(false);
+            form.resetFields();
           }}
         >
           <Form.Item

@@ -52,6 +52,7 @@ export default function CitesOutboundSoldPage() {
     (state) => state.citesOutboundSold
   );
 
+  const [filterForm] = Form.useForm();
   const [searchText, setSearchText]           = useState("");
   const [pageNumber, setPageNumber]           = useState(1);
   const [pageSize, setPageSize]               = useState(10);
@@ -149,6 +150,7 @@ export default function CitesOutboundSoldPage() {
       toDate:   values.dateRange ? values.dateRange[1].toISOString() : undefined,
     });
     setFilterModalOpen(false);
+    filterForm.resetFields();
   };
 
   const handleResetFilter = () => { setFilters({}); setPageNumber(1); };
@@ -331,7 +333,7 @@ export default function CitesOutboundSoldPage() {
         onCancel={() => setFilterModalOpen(false)}
         footer={null}
       >
-        <Form layout="vertical" onFinish={handleApplyFilter}>
+        <Form layout="vertical" form={filterForm} onFinish={handleApplyFilter}>
           <Form.Item name="status" label="Status">
             <Select
               allowClear
