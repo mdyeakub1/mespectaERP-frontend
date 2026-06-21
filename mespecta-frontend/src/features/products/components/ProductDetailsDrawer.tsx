@@ -1,4 +1,5 @@
-import { Drawer, Row, Col, Table, Spin, Typography, Tag } from "antd";
+import { Drawer, Row, Col, Table, Spin, Typography, Tag, Button, Space } from "antd";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { fetchProductById } from "../products.slice";
@@ -27,9 +28,11 @@ interface Props {
   open: boolean;
   productId: number | null;
   onClose: () => void;
+  onEdit?: (product: any) => void;
+  onDelete?: (product: any) => void;
 }
 
-export default function ProductDetailsDrawer({ open, productId, onClose }: Props) {
+export default function ProductDetailsDrawer({ open, productId, onClose, onEdit, onDelete }: Props) {
   const dispatch = useAppDispatch();
   const { details, detailsLoading } = useAppSelector((state) => state.products);
 
@@ -48,6 +51,25 @@ export default function ProductDetailsDrawer({ open, productId, onClose }: Props
             </Tag>
           )}
         </span>
+      }
+      extra={
+        !detailsLoading && details && (
+          <Space>
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => onEdit?.(details)}
+            >
+              Edit
+            </Button>
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={() => onDelete?.(details)}
+            >
+              Delete
+            </Button>
+          </Space>
+        )
       }
       width={750}
       open={open}

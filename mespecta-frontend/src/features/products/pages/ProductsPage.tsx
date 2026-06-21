@@ -241,22 +241,6 @@ useEffect(() => {
               Filter
             </Button>
 
-            <Button
-              icon={<FileExcelOutlined />}
-              loading={exportingExcel}
-              onClick={() => handleExport("excel")}
-            >
-              Export Excel
-            </Button>
-
-            <Button
-              icon={<FilePdfOutlined />}
-              loading={exportingPdf}
-              onClick={() => handleExport("pdf")}
-            >
-              Export PDF
-            </Button>
-
             {isFilterActive && (
               <Button
                 danger
@@ -301,16 +285,34 @@ useEffect(() => {
         </Col>
 
         <Col>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => {
-              setEditingRecord(null);
-              setDrawerOpen(true);
-            }}
-          >
-            Add New Product
-          </Button>
+          <Space>
+            <Button
+              icon={<FileExcelOutlined />}
+              loading={exportingExcel}
+              onClick={() => handleExport("excel")}
+            >
+              Export Excel
+            </Button>
+
+            <Button
+              icon={<FilePdfOutlined />}
+              loading={exportingPdf}
+              onClick={() => handleExport("pdf")}
+            >
+              Export PDF
+            </Button>
+
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditingRecord(null);
+                setDrawerOpen(true);
+              }}
+            >
+              Add New Product
+            </Button>
+          </Space>
         </Col>
       </Row>
 
@@ -345,10 +347,36 @@ useEffect(() => {
       />
 
       <ProductDetailsDrawer
-  open={detailsOpen}
-  productId={detailsId}
-  onClose={() => setDetailsOpen(false)}
-/>
+        open={detailsOpen}
+        productId={detailsId}
+        onClose={() => setDetailsOpen(false)}
+        onEdit={async (product) => {
+          try {
+            const [categoriesRes, gendersRes] = await Promise.all([
+              api.get("/product-categories"),
+              api.get("/product-genders"),
+            ]);
+            const cats = categoriesRes.data?.data?.items ?? categoriesRes.data?.data ?? [];
+            const gens = gendersRes.data?.data?.items    ?? gendersRes.data?.data    ?? [];
+            const categoryId = cats.find(
+              (c: any) => c.name.toLowerCase() === product.categoryName?.toLowerCase()
+            )?.productCategoryId ?? null;
+            const genderId = gens.find(
+              (g: any) => g.name.toLowerCase() === product.genderName?.toLowerCase()
+            )?.productGenderId ?? null;
+            setEditingRecord({ ...product, categoryId, genderId });
+            setDetailsOpen(false);
+            setDrawerOpen(true);
+          } catch {
+            // interceptor handles toast
+          }
+        }}
+        onDelete={(product) => {
+          setSelectedRecord(product);
+          setDetailsOpen(false);
+          setDeleteModalOpen(true);
+        }}
+      />
 
       {/* ================= DELETE MODAL ================= */}
       <Modal
