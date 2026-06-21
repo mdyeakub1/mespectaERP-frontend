@@ -71,7 +71,7 @@ export default function ProductDetailsDrawer({
             </Descriptions.Item>
           </Descriptions>
 
-          <h3 style={{ marginTop: 20 }}>Leather</h3>
+          <h3 style={{ marginTop: 20 }}>CITES Leather</h3>
 
           <Table
             size="small"

@@ -132,7 +132,7 @@ export default function ProductDrawer({ open, initialData, params, onClose }: Pr
   return (
     <Drawer
       title={initialData ? "Edit Product" : "Add New Product"}
-      width={600}
+      width={800}
       open={open}
       onClose={onClose}
       destroyOnHidden
@@ -224,8 +224,8 @@ export default function ProductDrawer({ open, initialData, params, onClose }: Pr
           </Col>
         </Row>
 
-        {/* ── Leather (always visible, single entry) ── */}
-        <SectionLabel>Leather</SectionLabel>
+        {/* ── CITES Leather (always visible, single entry) ── */}
+        <SectionLabel>CITES Leather</SectionLabel>
 
         <Row gutter={12} style={{ marginBottom: 8 }}>
           <Col span={6}>
