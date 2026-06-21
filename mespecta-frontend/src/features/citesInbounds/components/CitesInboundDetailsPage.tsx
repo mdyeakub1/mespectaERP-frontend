@@ -8,8 +8,11 @@ import {
   Typography,
   Table,
   Tabs,
+  Modal,
+  Space,
+  message,
 } from "antd";
-import { ArrowLeftOutlined, PrinterOutlined, FileTextOutlined, HistoryOutlined, FilePdfOutlined, EditOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, PrinterOutlined, FileTextOutlined, HistoryOutlined, FilePdfOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../services/api";
 import EditCitesInboundModal from "./EditCitesInboundModal";
@@ -40,8 +43,10 @@ export default function CitesInboundDetailsPage() {
   const [loading, setLoading]         = useState(false);
   const [qrSrc, setQrSrc]             = useState<string | null>(null);
   const [qrLoading, setQrLoading]     = useState(false);
-  const [exportingPdf, setExportingPdf] = useState(false);
-  const [editOpen, setEditOpen]       = useState(false);
+  const [exportingPdf, setExportingPdf]   = useState(false);
+  const [editOpen, setEditOpen]           = useState(false);
+  const [deleteOpen, setDeleteOpen]       = useState(false);
+  const [deleting, setDeleting]           = useState(false);
 
   useEffect(() => { fetchDetails(); }, [id]);
   useEffect(() => {
@@ -86,6 +91,20 @@ export default function CitesInboundDetailsPage() {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      await api.delete(`/cites-inbounds/${id}`);
+      message.success("CITES Inbound deleted");
+      navigate(-1);
+    } catch {
+      // interceptor handles toast
+    } finally {
+      setDeleting(false);
+      setDeleteOpen(false);
+    }
+  };
+
   const handlePrintQR = () => {
     if (!qrSrc) return;
     const w = window.open("", "_blank", "width=600,height=600");
@@ -116,9 +135,14 @@ export default function CitesInboundDetailsPage() {
             <Tabs
               defaultActiveKey="details"
               tabBarExtraContent={
-                <Button icon={<EditOutlined />} onClick={() => setEditOpen(true)}>
-                  Edit
-                </Button>
+                <Space>
+                  <Button icon={<EditOutlined />} onClick={() => setEditOpen(true)}>
+                    Edit
+                  </Button>
+                  <Button danger icon={<DeleteOutlined />} onClick={() => setDeleteOpen(true)}>
+                    Delete
+                  </Button>
+                </Space>
               }
               items={[
                 {
@@ -221,6 +245,19 @@ export default function CitesInboundDetailsPage() {
         onClose={() => setEditOpen(false)}
         onSuccess={fetchDetails}
       />
+
+      <Modal
+        title="Delete CITES Inbound"
+        open={deleteOpen}
+        onOk={handleDelete}
+        onCancel={() => setDeleteOpen(false)}
+        okText="Delete"
+        okButtonProps={{ danger: true, loading: deleting }}
+        destroyOnHidden
+      >
+        Are you sure you want to delete CITES Inbound{" "}
+        <strong>{data?.citesNumber || `#${id}`}</strong>? This action cannot be undone.
+      </Modal>
     </div>
   );
 }
