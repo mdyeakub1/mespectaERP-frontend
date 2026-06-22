@@ -3,6 +3,7 @@ import { Card, Row, Col, Button, Spin, Typography, Tag, Table } from "antd";
 import { ArrowLeftOutlined, PrinterOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../services/api";
+import { formatHours } from "../../../utils/formatHours";
 
 const { Text } = Typography;
 
@@ -29,11 +30,6 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 const formatDate = (val: string | null) =>
   val ? new Date(val).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : "-";
 
-const formatHours = (h: number) => {
-  const hrs = Math.floor(h ?? 0);
-  const mins = Math.round(((h ?? 0) % 1) * 60);
-  return `${hrs}h ${String(mins).padStart(2, "0")}m`;
-};
 
 export default function FinishedProductDetailsPage() {
   const { id } = useParams();

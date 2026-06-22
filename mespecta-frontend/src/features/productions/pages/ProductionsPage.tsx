@@ -21,6 +21,7 @@ import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { fetchProductions } from "../productions.slice";
 import StartProductionModal from "../components/StartProductionModal";
 import api from "../../../services/api";
+import { formatHours } from "../../../utils/formatHours";
 
 const { RangePicker } = DatePicker;
 
@@ -173,8 +174,7 @@ export default function ProductionsPage() {
     {
       title: "Working Hours",
       dataIndex: "totalWorkingHours",
-      render: (val: number) =>
-        `${val || 0} hrs`,
+      render: (val: number) => formatHours(val),
     },
     {
       title: "",

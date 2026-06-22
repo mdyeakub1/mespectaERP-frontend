@@ -16,6 +16,7 @@ import { ArrowLeftOutlined, PrinterOutlined, FileTextOutlined, HistoryOutlined, 
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../../services/api";
 import EditCitesInboundModal from "./EditCitesInboundModal";
+import { formatHours } from "../../../utils/formatHours";
 
 const { Text } = Typography;
 
@@ -29,11 +30,6 @@ const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
 );
 
 
-const formatHours = (hours: number) => {
-  const h = Math.floor(hours ?? 0);
-  const m = Math.round(((hours ?? 0) % 1) * 60);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-};
 
 export default function CitesInboundDetailsPage() {
   const { id } = useParams();

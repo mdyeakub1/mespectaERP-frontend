@@ -9,14 +9,9 @@ import {
 import { useParams, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { fetchCraftsmanById, clearCraftsmanDetails } from "../craftsmen.slice";
+import { formatHours } from "../../../utils/formatHours";
 
 const { Title, Text } = Typography;
-
-const formatHours = (hours: number) => {
-  const h = Math.floor(hours ?? 0);
-  const m = Math.round(((hours ?? 0) % 1) * 60);
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-};
 
 export default function CraftsmanDetailsPage() {
   const { id } = useParams();

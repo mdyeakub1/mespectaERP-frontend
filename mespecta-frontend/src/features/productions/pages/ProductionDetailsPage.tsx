@@ -18,6 +18,7 @@ import {
   HistoryOutlined,
 } from "@ant-design/icons";
 import api from "../../../services/api";
+import { formatHours } from "../../../utils/formatHours";
 
 const { Text } = Typography;
 
@@ -132,7 +133,7 @@ export default function ProductionDetailsPage() {
                       <Col span={12}><Field label="Outbound Serial No."      value={data.outboundSerialNumber} /></Col>
                       <Col span={12}><Field label="Status"                   value={getStatusTag(data.status)} /></Col>
                       <Col span={12}><Field label="Production Type"          value={data.productionType} /></Col>
-                      <Col span={12}><Field label="Total Working Hours"      value={`${data.totalWorkingHours} hrs`} /></Col>
+                      <Col span={12}><Field label="Total Working Hours"      value={formatHours(data.totalWorkingHours)} /></Col>
                       <Col span={12}><Field label="Created At"               value={fmt(data.createdAt)} /></Col>
                       <Col span={12}><Field label="Completed At"             value={fmt(data.completedAt)} /></Col>
 
