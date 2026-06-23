@@ -9,6 +9,7 @@ import {
   SettingFilled,
   ShoppingCartOutlined,
   InboxOutlined,
+  DashboardFilled,
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -22,6 +23,7 @@ const Sidebar = () => {
 
   const getSelectedKey = () => {
     const path = location.pathname;
+    if (path.startsWith("/dashboard"))        return "/dashboard";
     if (path.startsWith("/cites-inbounds"))   return "/cites-inbounds";
     if (path.startsWith("/cites-outbounds/sold"))  return "/cites-outbounds/sold";
     if (path.startsWith("/cites-outbounds/stock")) return "/cites-outbounds/stock";
@@ -58,6 +60,11 @@ const Sidebar = () => {
         defaultOpenKeys={getOpenKeys()}
         onClick={({ key }) => navigate(key)}
         items={[
+          {
+            key: "/dashboard",
+            icon: <DashboardFilled />,
+            label: "Dashboard",
+          },
           {
             key: "/cites-inbounds",
             icon: <SafetyCertificateFilled />,

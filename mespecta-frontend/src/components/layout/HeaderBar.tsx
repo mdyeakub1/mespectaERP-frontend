@@ -59,6 +59,8 @@ const { email, role } = useAppSelector(
       return "Craftsman Details";
 
     switch (path) {
+      case "/dashboard":
+        return "Dashboard";
       case "/productions":
         return "Productions";
       case "/finished-products":

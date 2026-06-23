@@ -34,6 +34,7 @@ import ProductionDetailsPage from "../features/productions/pages/ProductionDetai
 import DatabaseBackupPage from "../features/adminSetup/backup/pages/DatabaseBackupPage";
 import CraftsmenPage from "../features/craftsmen/pages/CraftsmenPage";
 import CraftsmanDetailsPage from "../features/craftsmen/pages/CraftsmanDetailsPage";
+import DashboardPage from "../features/dashboard/pages/DashboardPage";
 
 export default function AppRoutes() {
   return (
@@ -63,6 +64,8 @@ export default function AppRoutes() {
         >
           {/* Default Redirect */}
           <Route index element={<Navigate to="cites-inbounds" />} />
+
+          <Route path="dashboard" element={<DashboardPage />} />
 
           {/* CITES */}
           <Route path="cites-inbounds" element={<CitesInboundsPage />} />
