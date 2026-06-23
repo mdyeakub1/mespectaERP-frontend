@@ -10,6 +10,7 @@ interface AuthState {
   email: string | null;
   fullName: string | null;
   userId: number | null;
+  mustChangePassword: boolean;
   loading: boolean;
 }
 
@@ -20,6 +21,7 @@ const initialState: AuthState = {
   email: localStorage.getItem("email"),
   fullName: localStorage.getItem("fullName"),
   userId: localStorage.getItem("userId") ? Number(localStorage.getItem("userId")) : null,
+  mustChangePassword: localStorage.getItem("mustChangePassword") === "true",
   loading: false,
 };
 
@@ -60,12 +62,18 @@ const authSlice = createSlice({
       state.email = null;
       state.fullName = null;
       state.userId = null;
+      state.mustChangePassword = false;
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("role");
       localStorage.removeItem("email");
       localStorage.removeItem("fullName");
       localStorage.removeItem("userId");
+      localStorage.removeItem("mustChangePassword");
+    },
+    setMustChangePassword: (state, action: { payload: boolean }) => {
+      state.mustChangePassword = action.payload;
+      localStorage.setItem("mustChangePassword", String(action.payload));
     },
   },
   extraReducers: (builder) => {
@@ -81,6 +89,7 @@ const authSlice = createSlice({
         state.email = action.payload.email;
         state.fullName = action.payload.fullName ?? null;
         state.userId = action.payload.userId;
+        state.mustChangePassword = action.payload.mustChangePassword;
 
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("refreshToken", action.payload.refreshToken);
@@ -88,6 +97,7 @@ const authSlice = createSlice({
         localStorage.setItem("email", action.payload.email);
         if (action.payload.fullName) localStorage.setItem("fullName", action.payload.fullName);
         localStorage.setItem("userId", action.payload.userId.toString());
+        localStorage.setItem("mustChangePassword", String(action.payload.mustChangePassword));
       })
       .addCase(login.rejected, (state) => {
         state.loading = false;
@@ -99,15 +109,17 @@ const authSlice = createSlice({
         state.email = null;
         state.fullName = null;
         state.userId = null;
+        state.mustChangePassword = false;
         localStorage.removeItem("token");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("role");
         localStorage.removeItem("email");
         localStorage.removeItem("fullName");
         localStorage.removeItem("userId");
+        localStorage.removeItem("mustChangePassword");
       });
   },
 });
 
-export const { clearAuth } = authSlice.actions;
+export const { clearAuth, setMustChangePassword } = authSlice.actions;
 export default authSlice.reducer;

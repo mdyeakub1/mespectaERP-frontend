@@ -23,6 +23,7 @@ import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
 import { fetchAccount } from "../account.slice";
 import { changePassword } from "../account.api";
+import { setMustChangePassword } from "../../../auth/auth.slice";
 
 const { Title, Text } = Typography;
 
@@ -70,6 +71,7 @@ export default function AccountPage() {
 
       // If we reach here the request succeeded (errors throw and are caught below)
       message.success(response?.message || "Password changed successfully");
+      dispatch(setMustChangePassword(false));
       form.resetFields();
       setModalOpen(false);
     } catch {

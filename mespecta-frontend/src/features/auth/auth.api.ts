@@ -14,6 +14,7 @@ export const loginUser = async (data: { email: string; password: string }) => {
     email: payload?.email ?? payload?.Email,
     fullName: payload?.fullName ?? payload?.FullName,
     userId: payload?.userId ?? payload?.UserId,
+    mustChangePassword: payload?.mustChangePassword ?? payload?.MustChangePassword ?? false,
   };
 };
 
@@ -26,9 +27,15 @@ export const refreshTokenApi = async (refreshToken: string) => {
   return {
     token: payload.token ?? payload.Token,
     refreshToken: payload.refreshToken ?? payload.RefreshToken,
-  } as { token: string; refreshToken: string };
+    mustChangePassword: payload.mustChangePassword ?? payload.MustChangePassword ?? false,
+  } as { token: string; refreshToken: string; mustChangePassword: boolean };
 };
 
 export const logoutApi = async (refreshToken: string) => {
   await api.post("/auth/logout", { refreshToken });
+};
+
+export const setNewPassword = async (newPassword: string) => {
+  const response = await api.put("/auth/set-new-password", { newPassword });
+  return response.data;
 };

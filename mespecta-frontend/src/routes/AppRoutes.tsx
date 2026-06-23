@@ -1,5 +1,6 @@
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "../features/auth/LoginPage";
+import SetNewPasswordPage from "../features/auth/SetNewPasswordPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import PrivateRoute from "./PrivateRoute";
 import AppLayout from "../components/layout/AppLayout";
@@ -40,6 +41,16 @@ export default function AppRoutes() {
       <Routes>
 
         <Route path="/login" element={<LoginPage />} />
+
+        <Route
+          path="/set-new-password"
+          element={
+            <PrivateRoute>
+              <SetNewPasswordPage />
+            </PrivateRoute>
+          }
+        />
+
         <Route path="*" element={<NotFoundPage />} />
 
         <Route

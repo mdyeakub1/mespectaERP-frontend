@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getUsers, createUser, updateUser, deleteUser } from "./users.api";
+import { getUsers, createUser, updateUser, deleteUser, resetUserPassword } from "./users.api";
 import { extractError } from "../../../utils/extractError";
 import type { UserFilter } from "./users.api";
 
@@ -61,6 +61,17 @@ export const removeUser = createAsyncThunk(
   }
 );
 
+export const resetPassword = createAsyncThunk(
+  "users/resetPassword",
+  async (id: number, { rejectWithValue }) => {
+    try {
+      return await resetUserPassword(id);
+    } catch (error: any) {
+      return rejectWithValue(extractError(error, "Failed to reset password"));
+    }
+  }
+);
+
 const slice = createSlice({
   name: "users",
   initialState,
@@ -85,7 +96,11 @@ const slice = createSlice({
 
       .addCase(removeUser.pending, (state) => { state.mutating = true; })
       .addCase(removeUser.fulfilled, (state) => { state.mutating = false; })
-      .addCase(removeUser.rejected, (state) => { state.mutating = false; });
+      .addCase(removeUser.rejected, (state) => { state.mutating = false; })
+
+      .addCase(resetPassword.pending, (state) => { state.mutating = true; })
+      .addCase(resetPassword.fulfilled, (state) => { state.mutating = false; })
+      .addCase(resetPassword.rejected, (state) => { state.mutating = false; });
   },
 });
 

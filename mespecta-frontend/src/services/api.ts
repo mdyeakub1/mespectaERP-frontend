@@ -2,7 +2,7 @@ import axios from "axios";
 import { showError } from "../utils/message";
 import { refreshTokenApi } from "../features/auth/auth.api";
 import { store } from "../app/store";
-import { clearAuth } from "../features/auth/auth.slice";
+import { clearAuth, setMustChangePassword } from "../features/auth/auth.slice";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -103,6 +103,7 @@ api.interceptors.response.use(
 
         localStorage.setItem("token", data.token);
         localStorage.setItem("refreshToken", data.refreshToken);
+        store.dispatch(setMustChangePassword(data.mustChangePassword));
         api.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
         originalRequest.headers.Authorization = `Bearer ${data.token}`;
 

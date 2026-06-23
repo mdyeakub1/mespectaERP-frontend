@@ -11,11 +11,15 @@ import {
   Space,
   Row,
   Col,
+  Tag,
+  Typography,
 } from "antd";
-import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { PlusOutlined, EditOutlined, DeleteOutlined, KeyOutlined, CopyOutlined } from "@ant-design/icons";
 import { useAppDispatch, useAppSelector } from "../../../../app/hooks";
-import { fetchUsers, addUser, editUser, removeUser } from "../users.slice";
+import { fetchUsers, addUser, editUser, removeUser, resetPassword } from "../users.slice";
 import type { UserFilter } from "../users.api";
+
+const { Text } = Typography;
 
 const PAGE_SIZE = 10;
 
@@ -38,6 +42,12 @@ export default function UsersPage() {
   const [editingRecord, setEditingRecord] = useState<any>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingRecord, setDeletingRecord] = useState<any>(null);
+
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [resetTargetRecord, setResetTargetRecord] = useState<any>(null);
+  const [resetResultOpen, setResetResultOpen] = useState(false);
+  const [tempPassword, setTempPassword] = useState<string | null>(null);
+
   const [form] = Form.useForm();
 
   // Fetch whenever filter or sort changes
@@ -125,16 +135,48 @@ export default function UsersPage() {
     }
   };
 
+  /* ── Reset Password ── */
+  const handleResetPassword = async () => {
+    if (!resetTargetRecord) return;
+    try {
+      const result = await dispatch(resetPassword(resetTargetRecord.userId)).unwrap();
+      const newPassword = result?.data?.newPassword ?? result?.data?.NewPassword;
+      setResetConfirmOpen(false);
+      setTempPassword(newPassword);
+      setResetResultOpen(true);
+      dispatch(fetchUsers(filter)); // Refresh so "Reset pending" badge shows
+    } catch {
+      // interceptor handles toast
+    }
+  };
+
+  const handleCopyPassword = () => {
+    if (!tempPassword) return;
+    navigator.clipboard.writeText(tempPassword);
+    message.success("Password copied to clipboard");
+  };
+
   /* ── Columns ── */
   const columns = [
     { title: "Full Name", dataIndex: "fullName" },
     { title: "Email", dataIndex: "email" },
     { title: "Role", dataIndex: "role" },
     {
+      title: "Status",
+      render: (_: any, record: any) =>
+        record.mustChangePassword ? <Tag color="orange">Reset pending</Tag> : null,
+    },
+    {
       title: "",
       align: "right" as const,
       render: (_: any, record: any) => (
         <Space>
+          <KeyOutlined
+            style={{ color: "#fa8c16", cursor: "pointer" }}
+            title="Reset Password"
+            onClick={() => { setResetTargetRecord(record); setResetConfirmOpen(true); }}
+          />
+
           <EditOutlined
             style={{ color: "#1677ff", cursor: "pointer" }}
             onClick={() => openEdit(record)}
@@ -272,6 +314,52 @@ export default function UsersPage() {
       >
         Are you sure you want to delete{" "}
         <strong>{deletingRecord?.fullName}</strong>? This action cannot be undone.
+      </Modal>
+
+      {/* RESET PASSWORD CONFIRM MODAL */}
+      <Modal
+        title="Reset Password"
+        open={resetConfirmOpen}
+        onOk={handleResetPassword}
+        onCancel={() => { setResetConfirmOpen(false); setResetTargetRecord(null); }}
+        okText="Reset Password"
+        okButtonProps={{ danger: true }}
+        confirmLoading={mutating}
+        destroyOnHidden
+      >
+        Are you sure you want to reset the password for{" "}
+        <strong>{resetTargetRecord?.fullName}</strong>? They will be required to set a new password on next login.
+      </Modal>
+
+      {/* RESET PASSWORD RESULT MODAL */}
+      <Modal
+        title="Temporary Password"
+        open={resetResultOpen}
+        onCancel={() => { setResetResultOpen(false); setTempPassword(null); }}
+        footer={[
+          <Button key="close" onClick={() => { setResetResultOpen(false); setTempPassword(null); }}>
+            Close
+          </Button>,
+        ]}
+        destroyOnHidden
+      >
+        <Text>Share this temporary password with the user. It will not be shown again.</Text>
+        <div
+          style={{
+            marginTop: 16,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background: "#f5f5f5",
+            borderRadius: 8,
+            padding: "10px 14px",
+          }}
+        >
+          <Text strong style={{ fontSize: 16, letterSpacing: 1 }}>{tempPassword}</Text>
+          <Button icon={<CopyOutlined />} onClick={handleCopyPassword}>
+            Copy
+          </Button>
+        </div>
       </Modal>
     </Card>
   );
