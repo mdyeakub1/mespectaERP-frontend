@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Row, Col, Segmented, DatePicker, Button, Typography, Table, Space, Tag, Skeleton, Alert } from "antd";
+import { Card, Row, Col, Segmented, DatePicker, Button, Typography, Space, Tag, Skeleton, Alert } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
 import { getDashboard } from "../dashboard.api";
@@ -15,15 +15,6 @@ const SectionHeader = ({ children }: { children: string }) => (
       {children}
     </Text>
     <div style={{ height: 1, background: "#e8f0fe", marginTop: 6 }} />
-  </div>
-);
-
-const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div>
-    <Text type="secondary" style={{ fontSize: 11, display: "block", marginBottom: 2, textTransform: "uppercase", letterSpacing: 0.5 }}>
-      {label}
-    </Text>
-    <Text style={{ fontSize: 18, fontWeight: 700 }}>{value ?? "-"}</Text>
   </div>
 );
 
@@ -52,17 +43,57 @@ const KpiCard = ({
   </Card>
 );
 
-const BarRow = ({ label, value, display, max }: { label: string; value: number; display: string; max: number }) => {
-  const pct = max ? (value / max) * 100 : 0;
+const ColumnChart = ({
+  data,
+  color,
+  emptyText,
+}: {
+  data: { label: string; value: number; display: string; sub?: string }[];
+  color?: string;
+  emptyText?: string;
+}) => {
+  if (data.length === 0) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200 }}>
+        <Text type="secondary">{emptyText ?? "No data"}</Text>
+      </div>
+    );
+  }
+
+  const max = Math.max(1, ...data.map((d) => d.value));
+
   return (
-    <div style={{ marginBottom: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
-        <Text>{label}</Text>
-        <Text strong>{display}</Text>
-      </div>
-      <div style={{ height: 7, background: "#f0f0f0", borderRadius: 4 }}>
-        <div style={{ height: 7, width: `${pct}%`, background: "#1677ff", borderRadius: 4, transition: "width .3s" }} />
-      </div>
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 20, height: 220, padding: "0 8px", overflowX: "auto" }}>
+      {data.map((d) => {
+        const pct = (d.value / max) * 100;
+        return (
+          <div
+            key={d.label}
+            style={{ flex: "1 0 60px", display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end" }}
+          >
+            <Text strong style={{ fontSize: 13, marginBottom: 6 }}>
+              {d.display}
+            </Text>
+            <div
+              style={{
+                width: "100%",
+                maxWidth: 52,
+                height: `${pct}%`,
+                minHeight: d.value > 0 ? 4 : 0,
+                background: color ?? "#1677ff",
+                borderRadius: "6px 6px 0 0",
+                transition: "height .3s",
+              }}
+            />
+            <Text style={{ fontSize: 12, marginTop: 8, textAlign: "center" }}>{d.label}</Text>
+            {d.sub && (
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                {d.sub}
+              </Text>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -102,13 +133,32 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period, customRange]);
 
-  const contentStyle = { opacity: refetching ? 0.5 : 1, transition: "opacity .2s", pointerEvents: refetching ? ("none" as const) : ("auto" as const) };
+  const contentStyle = {
+    opacity: refetching ? 0.5 : 1,
+    transition: "opacity .2s",
+    pointerEvents: refetching ? ("none" as const) : ("auto" as const),
+  };
 
-  const leatherTypes = data?.cites.topLeatherTypes ?? [];
-  const maxSkins = Math.max(1, ...leatherTypes.map((l) => l.totalSkins));
+  const leatherChartData = (data?.cites.topLeatherTypes ?? []).map((l) => ({
+    label: l.leatherTypeName,
+    value: l.totalSkins,
+    display: formatNumberIt(l.totalSkins),
+    sub: `${formatNumberIt(l.inboundCount)} inbounds`,
+  }));
 
-  const craftsmen = [...(data?.craftsmen ?? [])].sort((a, b) => b.productionsInPeriod - a.productionsInPeriod);
-  const maxProductionsInPeriod = Math.max(1, ...craftsmen.map((c) => c.productionsInPeriod));
+  const craftsmenChartData = [...(data?.craftsmen ?? [])]
+    .sort((a, b) => b.productionsInPeriod - a.productionsInPeriod)
+    .map((c) => ({
+      label: c.fullName,
+      value: c.productionsInPeriod,
+      display: formatNumberIt(c.productionsInPeriod),
+      sub: c.currentlyInProgress > 0 ? "🟢 working" : undefined,
+    }));
+
+  const productionActivityData = [
+    { label: "Started", value: data?.productions.startedInPeriod ?? 0, display: formatNumberIt(data?.productions.startedInPeriod) },
+    { label: "Completed", value: data?.productions.completedInPeriod ?? 0, display: formatNumberIt(data?.productions.completedInPeriod) },
+  ];
 
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto" }}>
@@ -171,165 +221,59 @@ export default function DashboardPage() {
       )}
 
       <div style={contentStyle}>
-        {/* ── CITES ── */}
-        <SectionHeader>CITES</SectionHeader>
-
+        {/* ── TOP OVERVIEW ── */}
         <Row gutter={16}>
           <Col span={6}>
-            <KpiCard label="Total Inbounds" value={formatNumberIt(data?.cites.totalInbounds)} loading={loading} />
+            <KpiCard label="Total CITES Inbound" value={formatNumberIt(data?.cites.totalInbounds)} color="#1677ff" loading={loading} />
           </Col>
           <Col span={6}>
-            <KpiCard label="Total Skins" value={formatNumberIt(data?.cites.totalSkins)} loading={loading} />
+            <KpiCard label="Total Production" value={formatNumberIt(data?.productions.total)} color="#722ed1" loading={loading} />
           </Col>
           <Col span={6}>
-            <KpiCard
-              label="Inbounds in Period"
-              value={formatNumberIt(data?.cites.inboundsInPeriod)}
-              color="#1677ff"
-              loading={loading}
-            />
+            <KpiCard label="Total Sold" value={formatNumberIt(data?.productions.sold)} color="#13a8a8" loading={loading} />
           </Col>
           <Col span={6}>
-            <KpiCard
-              label="Skins in Period"
-              value={formatNumberIt(data?.cites.skinsInPeriod)}
-              color="#1677ff"
-              loading={loading}
-            />
+            <KpiCard label="Total Stock" value={formatNumberIt(data?.productions.inStock)} color="#fa8c16" loading={loading} />
           </Col>
         </Row>
 
-        <Card title="Top Leather Types" style={{ marginTop: 16, borderRadius: 12 }} loading={loading}>
-          <Table
-            size="small"
-            rowKey="leatherTypeName"
-            pagination={false}
-            dataSource={leatherTypes}
-            locale={{ emptyText: "No data for this period" }}
-            columns={[
-              { title: "Leather Type", dataIndex: "leatherTypeName" },
-              {
-                title: "Inbounds",
-                dataIndex: "inboundCount",
-                width: 110,
-                align: "right" as const,
-                render: (v: number) => formatNumberIt(v),
-              },
-              {
-                title: "Skins",
-                dataIndex: "totalSkins",
-                width: 260,
-                render: (v: number) => <BarRow label="" value={v} display={formatNumberIt(v)} max={maxSkins} />,
-              },
-            ]}
-          />
-        </Card>
+        {/* ── PRODUCTION GRAPH ── */}
+        <SectionHeader>Production Activity</SectionHeader>
 
-        {/* ── PRODUCTIONS ── */}
-        <SectionHeader>Productions</SectionHeader>
-
-        <Row gutter={16}>
-          <Col span={8}>
-            <KpiCard label="In Progress" value={formatNumberIt(data?.productions.inProgress)} color="#1677ff" loading={loading} />
-          </Col>
-          <Col span={8}>
-            <KpiCard label="Paused" value={formatNumberIt(data?.productions.paused)} color="#faad14" loading={loading} />
-          </Col>
-          <Col span={8}>
-            <KpiCard label="Completed" value={formatNumberIt(data?.productions.completed)} color="#52c41a" loading={loading} />
-          </Col>
-        </Row>
-
-        <Row gutter={16} style={{ marginTop: 16 }}>
-          <Col span={12}>
-            <KpiCard label="In Stock" value={formatNumberIt(data?.productions.inStock)} color="#722ed1" loading={loading} />
-          </Col>
-          <Col span={12}>
-            <KpiCard label="Sold" value={formatNumberIt(data?.productions.sold)} color="#13a8a8" loading={loading} />
-          </Col>
-        </Row>
-
-        <Card title="Period Activity" style={{ marginTop: 16, borderRadius: 12 }} loading={loading}>
-          <Row gutter={32}>
-            <Col span={8}>
-              <Field label="Started in Period" value={formatNumberIt(data?.productions.startedInPeriod)} />
+        <Card style={{ borderRadius: 12 }} loading={loading}>
+          <Row gutter={24} align="middle">
+            <Col span={16}>
+              <ColumnChart data={productionActivityData} color="#722ed1" />
             </Col>
             <Col span={8}>
-              <Field label="Completed in Period" value={formatNumberIt(data?.productions.completedInPeriod)} />
-            </Col>
-            <Col span={8}>
-              <Field label="Hours in Period" value={formatHoursIt(data?.productions.hoursInPeriod)} />
+              <div style={{ textAlign: "center" }}>
+                <Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  Hours in Period
+                </Text>
+                <div style={{ fontSize: 30, fontWeight: 700, color: "#722ed1", marginTop: 4 }}>
+                  {formatHoursIt(data?.productions.hoursInPeriod)}
+                </div>
+              </div>
             </Col>
           </Row>
         </Card>
 
-        {/* ── CRAFTSMEN ── */}
-        <SectionHeader>Craftsmen Production</SectionHeader>
+        {/* ── LEATHER TYPES + CRAFTSMEN ── */}
+        <Row gutter={16} style={{ marginTop: 8 }}>
+          <Col span={12}>
+            <SectionHeader>CITES Leather Types</SectionHeader>
+            <Card style={{ borderRadius: 12 }} loading={loading}>
+              <ColumnChart data={leatherChartData} color="#1677ff" emptyText="No leather data for this period" />
+            </Card>
+          </Col>
 
-        <Card style={{ borderRadius: 12 }} loading={loading}>
-          <Table
-            size="small"
-            rowKey="craftsmanId"
-            pagination={false}
-            dataSource={craftsmen}
-            locale={{ emptyText: "No data for this period" }}
-            columns={[
-              { title: "Craftsman", dataIndex: "fullName" },
-              {
-                title: "In Period (#)",
-                dataIndex: "productionsInPeriod",
-                align: "right" as const,
-                render: (v: number) => formatNumberIt(v),
-              },
-              {
-                title: "Hours (Period)",
-                dataIndex: "hoursInPeriod",
-                align: "right" as const,
-                render: (v: number) => formatHoursIt(v),
-              },
-              {
-                title: "Total (#)",
-                dataIndex: "totalProductions",
-                align: "right" as const,
-                render: (v: number) => formatNumberIt(v),
-              },
-              {
-                title: "Total Hours",
-                dataIndex: "totalHours",
-                align: "right" as const,
-                render: (v: number) => formatHoursIt(v),
-              },
-              {
-                title: "Now Working",
-                dataIndex: "currentlyInProgress",
-                align: "center" as const,
-                render: (v: number) =>
-                  v > 0 ? (
-                    <Space size={6}>
-                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#52c41a", display: "inline-block" }} />
-                      {v}
-                    </Space>
-                  ) : (
-                    <Text type="secondary">—</Text>
-                  ),
-              },
-            ]}
-          />
-        </Card>
-
-        {craftsmen.length > 0 && (
-          <Card title="Productions per Craftsman in Period" style={{ marginTop: 16, borderRadius: 12 }} loading={loading}>
-            {craftsmen.map((c) => (
-              <BarRow
-                key={c.craftsmanId}
-                label={c.fullName}
-                value={c.productionsInPeriod}
-                display={formatNumberIt(c.productionsInPeriod)}
-                max={maxProductionsInPeriod}
-              />
-            ))}
-          </Card>
-        )}
+          <Col span={12}>
+            <SectionHeader>Craftsman Production</SectionHeader>
+            <Card style={{ borderRadius: 12 }} loading={loading}>
+              <ColumnChart data={craftsmenChartData} color="#52c41a" emptyText="No craftsman data for this period" />
+            </Card>
+          </Col>
+        </Row>
       </div>
     </div>
   );
