@@ -6,6 +6,7 @@ export default function PrivateRoute({ children }: { children: React.ReactNode }
   const location = useLocation();
   const token        = localStorage.getItem("token");
   const refreshToken = localStorage.getItem("refreshToken");
+  const role          = localStorage.getItem("role");
   const mustChangePassword = localStorage.getItem("mustChangePassword") === "true";
 
   // Allow access if either token is present.
@@ -13,6 +14,12 @@ export default function PrivateRoute({ children }: { children: React.ReactNode }
   // automatically on the next request and retry transparently.
   // Only redirect when BOTH are gone (logged out or never authenticated).
   if (!token && !refreshToken) {
+    store.dispatch(clearAuth());
+    return <Navigate to="/login" replace />;
+  }
+
+  // This portal is Admin-only — craftsmen use a separate portal.
+  if (role?.toLowerCase() !== "admin") {
     store.dispatch(clearAuth());
     return <Navigate to="/login" replace />;
   }

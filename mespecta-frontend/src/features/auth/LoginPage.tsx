@@ -3,7 +3,7 @@ import { LockOutlined, MailOutlined } from "@ant-design/icons";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { login } from "./auth.slice";
+import { login, clearAuth } from "./auth.slice";
 
 const { Title, Text } = Typography;
 
@@ -16,7 +16,14 @@ const LoginPage = () => {
   const onFinish = async (values: any) => {
     setErrorMsg(null);
     try {
-      await dispatch(login(values)).unwrap();
+      const result = await dispatch(login(values)).unwrap();
+
+      if (result.role?.toLowerCase() !== "admin") {
+        dispatch(clearAuth());
+        setErrorMsg("This portal is for Admin users only. Craftsmen, please use the Craftsman portal.");
+        return;
+      }
+
       message.success("Login successful");
       navigate("/");
     } catch (err: any) {
