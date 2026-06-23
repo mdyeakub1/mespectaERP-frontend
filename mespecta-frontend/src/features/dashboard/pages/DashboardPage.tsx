@@ -1,10 +1,22 @@
 import { useEffect, useState } from "react";
-import { Card, Row, Col, Segmented, DatePicker, Button, Typography, Space, Tag, Skeleton, Alert } from "antd";
+import { Card, Row, Col, Segmented, DatePicker, Button, Typography, Space, Tag, Skeleton, Alert, Table } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
 import { getDashboard } from "../dashboard.api";
+import { getProductions } from "../../productions/productions.api";
 import type { DashboardData, DashboardPeriod } from "../dashboard.types";
 import { formatNumberIt, formatHoursIt, formatDateIt } from "../../../utils/formatItalian";
+
+const isCompleted = (status: number | string) => status === 3 || status === "Completed";
+const isInProgress = (status: number | string) => status === 1 || status === "InProgress" || status === "In Progress";
+
+interface ProductBreakdown {
+  productCode: string;
+  qtyProduced: number;
+  completed: number;
+  inProgress: number;
+  totalHours: number;
+}
 
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -106,6 +118,37 @@ export default function DashboardPage() {
   const [refetching, setRefetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [productBreakdown, setProductBreakdown] = useState<ProductBreakdown[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+
+  const fetchProductBreakdown = async (fromDate: string, toDate: string) => {
+    try {
+      setProductsLoading(true);
+      const res = await getProductions({
+        createdFrom: fromDate,
+        createdTo: toDate,
+        pageNumber: 1,
+        pageSize: 1000,
+      });
+
+      const map = new Map<string, ProductBreakdown>();
+      for (const p of res.items) {
+        const key = p.productCode || "Unknown";
+        const entry = map.get(key) ?? { productCode: key, qtyProduced: 0, completed: 0, inProgress: 0, totalHours: 0 };
+        entry.qtyProduced += 1;
+        if (isCompleted(p.status)) entry.completed += 1;
+        if (isInProgress(p.status)) entry.inProgress += 1;
+        entry.totalHours += p.totalWorkingHours ?? 0;
+        map.set(key, entry);
+      }
+
+      setProductBreakdown([...map.values()].sort((a, b) => b.qtyProduced - a.qtyProduced));
+    } catch {
+      setProductBreakdown([]);
+    } finally {
+      setProductsLoading(false);
+    }
+  };
 
   const fetchDashboard = async () => {
     try {
@@ -120,6 +163,7 @@ export default function DashboardPage() {
       const result = await getDashboard(params);
       setData(result);
       setLastRefreshed(new Date());
+      fetchProductBreakdown(result.fromDate, result.toDate);
     } catch {
       setError("Failed to load dashboard.");
     } finally {
@@ -159,6 +203,12 @@ export default function DashboardPage() {
     { label: "Started", value: data?.productions.startedInPeriod ?? 0, display: formatNumberIt(data?.productions.startedInPeriod) },
     { label: "Completed", value: data?.productions.completedInPeriod ?? 0, display: formatNumberIt(data?.productions.completedInPeriod) },
   ];
+
+  const topProductsChartData = productBreakdown.slice(0, 8).map((p) => ({
+    label: p.productCode,
+    value: p.qtyProduced,
+    display: formatNumberIt(p.qtyProduced),
+  }));
 
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto" }}>
@@ -237,7 +287,76 @@ export default function DashboardPage() {
           </Col>
         </Row>
 
-        {/* ── PRODUCTION GRAPH ── */}
+        {/* ── LEATHER TYPES + CRAFTSMEN ── */}
+        <Row gutter={16} style={{ marginTop: 8 }}>
+          <Col span={12}>
+            <SectionHeader>CITES Leather Types</SectionHeader>
+            <Card style={{ borderRadius: 12 }} loading={loading}>
+              <ColumnChart data={leatherChartData} color="#1677ff" emptyText="No leather data for this period" />
+            </Card>
+          </Col>
+
+          <Col span={12}>
+            <SectionHeader>Craftsman Production</SectionHeader>
+            <Card style={{ borderRadius: 12 }} loading={loading}>
+              <ColumnChart data={craftsmenChartData} color="#52c41a" emptyText="No craftsman data for this period" />
+            </Card>
+          </Col>
+        </Row>
+
+        {/* ── PRODUCT PRODUCTION DETAILS ── */}
+        <SectionHeader>Product Production</SectionHeader>
+
+        <Card style={{ borderRadius: 12, marginBottom: 16 }} loading={loading}>
+          <ColumnChart data={topProductsChartData} color="#13a8a8" emptyText="No products produced in this period" />
+        </Card>
+
+        <Card style={{ borderRadius: 12 }} loading={loading || productsLoading}>
+          <Table
+            size="small"
+            rowKey="productCode"
+            dataSource={productBreakdown}
+            pagination={{ pageSize: 10, hideOnSinglePage: true }}
+            locale={{ emptyText: "No products produced in this period" }}
+            columns={[
+              { title: "Product Code", dataIndex: "productCode" },
+              {
+                title: "Qty Produced",
+                dataIndex: "qtyProduced",
+                align: "right" as const,
+                sorter: (a, b) => a.qtyProduced - b.qtyProduced,
+                defaultSortOrder: "descend" as const,
+                render: (v: number) => formatNumberIt(v),
+              },
+              {
+                title: "Completed",
+                dataIndex: "completed",
+                align: "right" as const,
+                render: (v: number) => formatNumberIt(v),
+              },
+              {
+                title: "In Progress",
+                dataIndex: "inProgress",
+                align: "right" as const,
+                render: (v: number) => formatNumberIt(v),
+              },
+              {
+                title: "Total Hours",
+                dataIndex: "totalHours",
+                align: "right" as const,
+                render: (v: number) => formatHoursIt(v),
+              },
+              {
+                title: "Avg Hours / Unit",
+                key: "avgHours",
+                align: "right" as const,
+                render: (_: any, record) => formatHoursIt(record.qtyProduced ? record.totalHours / record.qtyProduced : 0),
+              },
+            ]}
+          />
+        </Card>
+
+        {/* ── PRODUCTION ACTIVITY ── */}
         <SectionHeader>Production Activity</SectionHeader>
 
         <Card style={{ borderRadius: 12 }} loading={loading}>
@@ -257,23 +376,6 @@ export default function DashboardPage() {
             </Col>
           </Row>
         </Card>
-
-        {/* ── LEATHER TYPES + CRAFTSMEN ── */}
-        <Row gutter={16} style={{ marginTop: 8 }}>
-          <Col span={12}>
-            <SectionHeader>CITES Leather Types</SectionHeader>
-            <Card style={{ borderRadius: 12 }} loading={loading}>
-              <ColumnChart data={leatherChartData} color="#1677ff" emptyText="No leather data for this period" />
-            </Card>
-          </Col>
-
-          <Col span={12}>
-            <SectionHeader>Craftsman Production</SectionHeader>
-            <Card style={{ borderRadius: 12 }} loading={loading}>
-              <ColumnChart data={craftsmenChartData} color="#52c41a" emptyText="No craftsman data for this period" />
-            </Card>
-          </Col>
-        </Row>
       </div>
     </div>
   );
