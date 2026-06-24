@@ -270,6 +270,7 @@ useEffect(() => {
                 { value: "CommonName",    label: "Common Name" },
                 { value: "CitesNumber",   label: "CITES Number" },
                 { value: "Quantity",      label: "Quantity" },
+                { value: "CreatedAt",     label: "Created At" },
               ]}
             />
             {sortBy && (
