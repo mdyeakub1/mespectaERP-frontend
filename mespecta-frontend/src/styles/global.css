@@ -55,20 +55,12 @@
   border-bottom: 1px solid #f1f5f9 !important;
   border-right: none !important;
   background: #fff !important;
-  transition: background 0.15s ease, border-left 0.15s ease !important;
+  transition: background 0.15s ease !important;
 }
 
-/* Hover row — blue left accent */
+/* Hover row */
 .ant-table-tbody > tr:hover > td {
   background: #f0f7ff !important;
-}
-
-.ant-table-tbody > tr:hover > td:first-child {
-  border-left: 3px solid #1677ff !important;
-}
-
-.ant-table-tbody > tr > td:first-child {
-  border-left: 3px solid transparent !important;
 }
 
 /* Last row — no bottom border */
