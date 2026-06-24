@@ -168,8 +168,16 @@ useEffect(() => {
       dataIndex: "citesInboundSerialNo",
     },
     {
-      title: "Date",
+      title: "Issue Date",
       dataIndex: "issueDate",
+      render: (val: string) => {
+        if (!val) return "-";
+        return new Date(val).toISOString().slice(0, 10);
+      },
+    },
+    {
+      title: "Created At",
+      dataIndex: "createdAt",
       render: (val: string) => {
         if (!val) return "-";
         return new Date(val).toISOString().slice(0, 10);
