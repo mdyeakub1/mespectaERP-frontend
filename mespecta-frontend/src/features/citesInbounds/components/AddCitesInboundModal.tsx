@@ -9,8 +9,9 @@ import {
     Col,
     message,
     Spin,
+    AutoComplete,
 } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../../../services/api";
 import { useAppDispatch } from "../../../app/hooks";
 import dayjs from "dayjs";
@@ -40,6 +41,9 @@ export default function AddCitesInboundModal({
     const [sources, setSources] = useState<any[]>([]);
     const [documentTypes, setDocumentTypes] =
         useState<any[]>([]);
+
+    const [citesNumberOptions, setCitesNumberOptions] = useState<{ value: string }[]>([]);
+    const citesSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     /* ------------------------------
        Extract list safely
@@ -97,6 +101,32 @@ export default function AddCitesInboundModal({
         } finally {
             setLoadingDropdowns(false);
         }
+    };
+
+    /* ------------------------------
+       CITES Number suggestions
+    ------------------------------- */
+    const handleCitesNumberSearch = (value: string) => {
+        if (citesSearchDebounceRef.current) clearTimeout(citesSearchDebounceRef.current);
+
+        if (!value) {
+            setCitesNumberOptions([]);
+            return;
+        }
+
+        citesSearchDebounceRef.current = setTimeout(async () => {
+            try {
+                const res = await api.get("/cites-inbounds", {
+                    params: { search: value, pageNumber: 1, pageSize: 8 },
+                });
+                const items = res.data?.data?.items ?? [];
+                const raw: string[] = items.map((i: any) => i.citesNumber).filter(Boolean);
+                const numbers = Array.from(new Set(raw));
+                setCitesNumberOptions(numbers.map((n) => ({ value: n })));
+            } catch {
+                setCitesNumberOptions([]);
+            }
+        }, 300);
     };
 
     /* ------------------------------
@@ -181,7 +211,13 @@ export default function AddCitesInboundModal({
                                 name="citesNumber"
                                 rules={[{ required: true }]}
                             >
-                                <Input />
+                                <AutoComplete
+                                    options={citesNumberOptions}
+                                    onSearch={handleCitesNumberSearch}
+                                    placeholder="e.g. 1000_1"
+                                >
+                                    <Input />
+                                </AutoComplete>
                             </Form.Item>
                         </Col>
                     </Row>
