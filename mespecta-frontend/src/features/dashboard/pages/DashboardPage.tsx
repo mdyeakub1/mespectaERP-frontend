@@ -310,12 +310,10 @@ export default function DashboardPage() {
 
   const leatherChartData = (data?.cites.topLeatherTypes ?? []).map((l) => {
     const skins = Number(l.totalSkins) || 0;
-    const inbounds = Number(l.inboundCount) || 0;
     return {
       label: l.leatherTypeName,
       value: skins,
       display: formatNumberIt(skins),
-      sub: `${formatNumberIt(inbounds)} inbounds`,
     };
   });
 
