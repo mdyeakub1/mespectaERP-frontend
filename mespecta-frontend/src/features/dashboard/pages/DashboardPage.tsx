@@ -308,12 +308,16 @@ export default function DashboardPage() {
     pointerEvents: refetching ? ("none" as const) : ("auto" as const),
   };
 
-  const leatherChartData = (data?.cites.topLeatherTypes ?? []).map((l) => ({
-    label: l.leatherTypeName,
-    value: l.totalSkins,
-    display: formatNumberIt(l.totalSkins),
-    sub: `${formatNumberIt(l.inboundCount)} inbounds`,
-  }));
+  const leatherChartData = (data?.cites.topLeatherTypes ?? []).map((l) => {
+    const skins = Number(l.totalSkins) || 0;
+    const inbounds = Number(l.inboundCount) || 0;
+    return {
+      label: l.leatherTypeName,
+      value: skins,
+      display: formatNumberIt(skins),
+      sub: `${formatNumberIt(inbounds)} inbounds`,
+    };
+  });
 
   const craftsmenChartData = [...(data?.craftsmen ?? [])]
     .sort((a, b) => b.productionsInPeriod - a.productionsInPeriod)
@@ -328,12 +332,6 @@ export default function DashboardPage() {
     { label: "Started", value: data?.productions.startedInPeriod ?? 0, display: formatNumberIt(data?.productions.startedInPeriod) },
     { label: "Completed", value: data?.productions.completedInPeriod ?? 0, display: formatNumberIt(data?.productions.completedInPeriod) },
   ];
-
-  const topProductsChartData = productBreakdown.slice(0, 8).map((p) => ({
-    label: p.productCode,
-    value: p.qtyProduced,
-    display: formatNumberIt(p.qtyProduced),
-  }));
 
   const statusDonutData = [
     { label: "In Progress", value: data?.productions.inProgress ?? 0, color: "#1677ff" },
@@ -464,10 +462,6 @@ export default function DashboardPage() {
 
         {/* ── PRODUCT PRODUCTION DETAILS ── */}
         <SectionHeader>Product Production</SectionHeader>
-
-        <Card style={{ borderRadius: 12, marginBottom: 16 }} loading={loading}>
-          <HorizontalBarChart data={topProductsChartData} color="#13a8a8" emptyText="No products produced in this period" />
-        </Card>
 
         <Card style={{ borderRadius: 12 }} loading={loading || productsLoading}>
           <Table

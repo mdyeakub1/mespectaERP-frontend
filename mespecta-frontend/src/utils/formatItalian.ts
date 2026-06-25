@@ -1,11 +1,15 @@
-export function formatNumberIt(value: number | null | undefined): string {
-  if (value == null || isNaN(value)) return "-";
-  return value.toLocaleString("it-IT", { maximumFractionDigits: 2 });
+export function formatNumberIt(value: number | string | null | undefined): string {
+  if (value == null) return "-";
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(num)) return "-";
+  return num.toLocaleString("it-IT", { maximumFractionDigits: 2 });
 }
 
-export function formatHoursIt(value: number | null | undefined): string {
-  if (value == null || isNaN(value)) return "-";
-  return `${value.toLocaleString("it-IT", { maximumFractionDigits: 2 })} h`;
+export function formatHoursIt(value: number | string | null | undefined): string {
+  if (value == null) return "-";
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(num)) return "-";
+  return `${num.toLocaleString("it-IT", { maximumFractionDigits: 2 })} h`;
 }
 
 export function formatDateIt(value: string | null | undefined): string {
