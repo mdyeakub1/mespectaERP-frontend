@@ -380,7 +380,11 @@ useEffect(() => {
     >
       <Select
         allowClear
+        showSearch
         loading={loadingFilters}
+        filterOption={(input, option) =>
+          (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+        }
         options={colors.map((c) => ({
           value: c.colorId ?? c.id,
           label: c.name,

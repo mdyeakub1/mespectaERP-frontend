@@ -271,6 +271,11 @@ export default function AddCitesInboundModal({
                                 rules={[{ required: true }]}
                             >
                                 <Select
+                                    showSearch
+                                    placeholder="Search color"
+                                    filterOption={(input, option) =>
+                                        (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                                    }
                                     options={colors?.map(
                                         (c: any) => ({
                                             value:

@@ -184,7 +184,14 @@ export default function EditCitesInboundModal({ open, id, data, onClose, onSucce
             </Col>
             <Col span={12}>
               <Form.Item label="Color" name="colorId" rules={[{ required: true }]}>
-                <Select options={colors.map((c) => ({ value: c.colorId ?? c.id, label: c.name }))} />
+                <Select
+                  showSearch
+                  placeholder="Search color"
+                  filterOption={(input, option) =>
+                    (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={colors.map((c) => ({ value: c.colorId ?? c.id, label: c.name }))}
+                />
               </Form.Item>
             </Col>
           </Row>
