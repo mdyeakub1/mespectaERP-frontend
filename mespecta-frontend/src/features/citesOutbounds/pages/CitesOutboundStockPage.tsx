@@ -23,6 +23,7 @@ import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import api from "../../../services/api";
 import { fetchCitesOutboundStock } from "../citesOutboundStock.slice";
 import type { CitesOutboundStockItem } from "../citesOutboundStock.types";
+import { formatHours } from "../../../utils/formatHours";
 
 const ALL_COLUMNS = [
   { key: "serialNo",                title: "Serial No.",          dataIndex: "serialNo" },
@@ -42,7 +43,7 @@ const ALL_COLUMNS = [
   { key: "productCode",             title: "Product Code",        dataIndex: "productCode" },
   { key: "productDescription",      title: "Description",         dataIndex: "productDescription" },
   { key: "craftsmanName",           title: "Craftsman",           dataIndex: "craftsmanName" },
-  { key: "totalWorkingHoursDisplay",title: "Working Hours",       dataIndex: "totalWorkingHoursDisplay" },
+  { key: "totalWorkingHoursDisplay",title: "Working Hours",       render: (_: any, r: CitesOutboundStockItem) => formatHours(r.totalWorkingHours) },
   { key: "status",                  title: "Status",              dataIndex: "status",                  render: (val: string) => val === "Sold" ? <Tag color="green">{val}</Tag> : <Tag color="orange">{val}</Tag> },
 ];
 
