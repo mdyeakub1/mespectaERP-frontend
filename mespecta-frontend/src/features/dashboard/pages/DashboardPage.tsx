@@ -110,6 +110,131 @@ const ColumnChart = ({
   );
 };
 
+const HorizontalBarChart = ({
+  data,
+  color,
+  emptyText,
+}: {
+  data: { label: string; value: number; display: string; sub?: string }[];
+  color?: string;
+  emptyText?: string;
+}) => {
+  if (data.length === 0) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 120 }}>
+        <Text type="secondary">{emptyText ?? "No data"}</Text>
+      </div>
+    );
+  }
+
+  const max = Math.max(1, ...data.map((d) => d.value));
+
+  return (
+    <div>
+      {data.map((d) => {
+        const pct = (d.value / max) * 100;
+        return (
+          <div key={d.label} style={{ marginBottom: 16 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+              <Text>{d.label}</Text>
+              <Space size={6}>
+                {d.sub && (
+                  <Text type="secondary" style={{ fontSize: 11 }}>
+                    {d.sub}
+                  </Text>
+                )}
+                <Text strong>{d.display}</Text>
+              </Space>
+            </div>
+            <div style={{ height: 10, background: "#f0f0f0", borderRadius: 5 }}>
+              <div
+                style={{
+                  height: 10,
+                  width: `${pct}%`,
+                  minWidth: d.value > 0 ? 4 : 0,
+                  background: color ?? "#1677ff",
+                  borderRadius: 5,
+                  transition: "width .3s",
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const DonutChart = ({
+  data,
+  size = 150,
+  thickness = 22,
+}: {
+  data: { label: string; value: number; color: string }[];
+  size?: number;
+  thickness?: number;
+}) => {
+  const total = data.reduce((sum, d) => sum + d.value, 0);
+  const radius = (size - thickness) / 2;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+
+  if (total === 0) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: size }}>
+        <Text type="secondary">No data</Text>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+          <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#f0f0f0" strokeWidth={thickness} />
+          {data
+            .filter((d) => d.value > 0)
+            .map((d) => {
+              const pct = d.value / total;
+              const dash = pct * circumference;
+              const dashArray = `${dash} ${circumference - dash}`;
+              const dashOffset = -offset;
+              offset += dash;
+              return (
+                <circle
+                  key={d.label}
+                  cx={size / 2}
+                  cy={size / 2}
+                  r={radius}
+                  fill="none"
+                  stroke={d.color}
+                  strokeWidth={thickness}
+                  strokeDasharray={dashArray}
+                  strokeDashoffset={dashOffset}
+                />
+              );
+            })}
+        </g>
+        <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" style={{ fontSize: 20, fontWeight: 700, fill: "#1f2937" }}>
+          {formatNumberIt(total)}
+        </text>
+      </svg>
+
+      <div>
+        {data.map((d) => (
+          <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: d.color, display: "inline-block" }} />
+            <Text style={{ fontSize: 13 }}>{d.label}</Text>
+            <Text strong style={{ fontSize: 13 }}>
+              {formatNumberIt(d.value)}
+            </Text>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function DashboardPage() {
   const [period, setPeriod] = useState<DashboardPeriod>("Monthly");
   const [customRange, setCustomRange] = useState<[Dayjs, Dayjs] | null>(null);
@@ -210,6 +335,17 @@ export default function DashboardPage() {
     display: formatNumberIt(p.qtyProduced),
   }));
 
+  const statusDonutData = [
+    { label: "In Progress", value: data?.productions.inProgress ?? 0, color: "#1677ff" },
+    { label: "Paused", value: data?.productions.paused ?? 0, color: "#faad14" },
+    { label: "Completed", value: data?.productions.completed ?? 0, color: "#52c41a" },
+  ];
+
+  const stockSoldDonutData = [
+    { label: "In Stock", value: data?.productions.inStock ?? 0, color: "#722ed1" },
+    { label: "Sold", value: data?.productions.sold ?? 0, color: "#13a8a8" },
+  ];
+
   return (
     <div style={{ maxWidth: 1280, margin: "0 auto" }}>
       {/* ── TOP BAR ── */}
@@ -287,12 +423,34 @@ export default function DashboardPage() {
           </Col>
         </Row>
 
+        {/* ── PRODUCTION STATUS DONUTS ── */}
+        <SectionHeader>Production Status</SectionHeader>
+
+        <Row gutter={16}>
+          <Col span={12}>
+            <Card style={{ borderRadius: 12 }} loading={loading}>
+              <Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 12 }}>
+                By Status
+              </Text>
+              <DonutChart data={statusDonutData} />
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card style={{ borderRadius: 12 }} loading={loading}>
+              <Text type="secondary" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 12 }}>
+                Stock vs Sold
+              </Text>
+              <DonutChart data={stockSoldDonutData} />
+            </Card>
+          </Col>
+        </Row>
+
         {/* ── LEATHER TYPES + CRAFTSMEN ── */}
         <Row gutter={16} style={{ marginTop: 8 }}>
           <Col span={12}>
             <SectionHeader>CITES Leather Types</SectionHeader>
             <Card style={{ borderRadius: 12 }} loading={loading}>
-              <ColumnChart data={leatherChartData} color="#1677ff" emptyText="No leather data for this period" />
+              <HorizontalBarChart data={leatherChartData} color="#1677ff" emptyText="No leather data for this period" />
             </Card>
           </Col>
 
@@ -308,7 +466,7 @@ export default function DashboardPage() {
         <SectionHeader>Product Production</SectionHeader>
 
         <Card style={{ borderRadius: 12, marginBottom: 16 }} loading={loading}>
-          <ColumnChart data={topProductsChartData} color="#13a8a8" emptyText="No products produced in this period" />
+          <HorizontalBarChart data={topProductsChartData} color="#13a8a8" emptyText="No products produced in this period" />
         </Card>
 
         <Card style={{ borderRadius: 12 }} loading={loading || productsLoading}>
