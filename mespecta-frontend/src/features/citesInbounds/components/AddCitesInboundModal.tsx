@@ -215,9 +215,7 @@ export default function AddCitesInboundModal({
                                     options={citesNumberOptions}
                                     onSearch={handleCitesNumberSearch}
                                     placeholder="e.g. 1000_1"
-                                >
-                                    <Input />
-                                </AutoComplete>
+                                />
                             </Form.Item>
                         </Col>
                     </Row>
