@@ -63,7 +63,7 @@ export default function AppRoutes() {
           }
         >
           {/* Default Redirect */}
-          <Route index element={<Navigate to="cites-inbounds" />} />
+          <Route index element={<Navigate to="dashboard" />} />
 
           <Route path="dashboard" element={<DashboardPage />} />
 
