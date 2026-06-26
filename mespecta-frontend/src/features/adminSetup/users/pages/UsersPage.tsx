@@ -171,18 +171,27 @@ export default function UsersPage() {
       align: "right" as const,
       render: (_: any, record: any) => (
         <Space>
-          <KeyOutlined
-            style={{ color: "#fa8c16", cursor: "pointer" }}
+          <Button
+            type="text"
+            size="small"
+            icon={<KeyOutlined />}
+            style={{ color: "#fa8c16" }}
             title="Reset Password"
             onClick={() => { setResetTargetRecord(record); setResetConfirmOpen(true); }}
           />
 
-          <EditOutlined
-            style={{ color: "#1677ff", cursor: "pointer" }}
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            style={{ color: "#1677ff" }}
             onClick={() => openEdit(record)}
           />
-          <DeleteOutlined
-            style={{ color: "#ff4d4f", cursor: "pointer" }}
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
             onClick={() => { setDeletingRecord(record); setDeleteModalOpen(true); }}
           />
         </Space>

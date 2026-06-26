@@ -171,8 +171,11 @@ useEffect(() => {
         Details
       </Button>
 
-      <EditOutlined
-        style={{ color: "#1677ff", cursor: "pointer" }}
+      <Button
+        type="text"
+        size="small"
+        icon={<EditOutlined />}
+        style={{ color: "#1677ff" }}
         onClick={async () => {
           try {
             const [categoriesRes, gendersRes, productRes] = await Promise.all([
@@ -201,8 +204,11 @@ useEffect(() => {
         }}
       />
 
-      <DeleteOutlined
-        style={{ color: "#ff4d4f", cursor: "pointer" }}
+      <Button
+        type="text"
+        size="small"
+        danger
+        icon={<DeleteOutlined />}
         onClick={() => {
           setSelectedRecord(record);
           setDeleteModalOpen(true);

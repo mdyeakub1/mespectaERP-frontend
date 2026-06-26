@@ -160,20 +160,20 @@ const MaterialsPage = () => {
       align: "right" as const,
       render: (_: any, record: any) => (
         <Space>
-          <EditOutlined
-            style={{
-              color: "#1677ff",
-              cursor: "pointer",
-            }}
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            style={{ color: "#1677ff" }}
             onClick={() =>
               openEditModal(record)
             }
           />
-          <DeleteOutlined
-            style={{
-              color: "#ff4d4f",
-              cursor: "pointer",
-            }}
+          <Button
+            type="text"
+            size="small"
+            danger
+            icon={<DeleteOutlined />}
             onClick={() => {
               setDeletingRecord(record);
               setIsDeleteModalOpen(true);
