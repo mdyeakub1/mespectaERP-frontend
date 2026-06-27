@@ -53,6 +53,7 @@ const [detailsId, setDetailsId] = useState<number | null>(null);
   const [filterOpen, setFilterOpen]           = useState(false);
   const [sortBy, setSortBy]                   = useState<string | undefined>(undefined);
   const [sortDescending, setSortDescending]   = useState(true);
+  const [searchResetKey, setSearchResetKey]   = useState(0);
 
   const [categories, setCategories] = useState<any[]>([]);
   const [genders, setGenders] = useState<any[]>([]);
@@ -141,7 +142,16 @@ useEffect(() => {
   };
 
   const isFilterActive =
-    Object.keys(filters).length > 0;
+    Object.keys(filters).length > 0 || Boolean(search) || Boolean(sortBy);
+
+  const handleResetFilter = () => {
+    setFilters({});
+    setSearch("");
+    setSortBy(undefined);
+    setSortDescending(true);
+    setPageNumber(1);
+    setSearchResetKey((k) => k + 1);
+  };
 
   /* ================= TABLE COLUMNS ================= */
   const columns = [
@@ -230,6 +240,7 @@ useEffect(() => {
         <Col>
           <Space>
             <Input.Search
+              key={searchResetKey}
               placeholder="Search by code or description"
               style={{ width: 260 }}
               allowClear
@@ -248,13 +259,7 @@ useEffect(() => {
             </Button>
 
             {isFilterActive && (
-              <Button
-                danger
-                onClick={() => {
-                  setFilters({});
-                  setPageNumber(1);
-                }}
-              >
+              <Button danger onClick={handleResetFilter}>
                 Reset Filter
               </Button>
             )}

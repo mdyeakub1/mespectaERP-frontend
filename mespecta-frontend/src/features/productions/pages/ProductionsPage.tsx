@@ -56,6 +56,7 @@ export default function ProductionsPage() {
   const [filterOpen, setFilterOpen]           = useState(false);
   const [sortBy, setSortBy]                   = useState<string | undefined>(undefined);
   const [sortDescending, setSortDescending]   = useState(true);
+  const [searchResetKey, setSearchResetKey]   = useState(0);
 
   const [products, setProducts] = useState<any[]>([]);
   const [craftsmen, setCraftsmen] = useState<any[]>([]);
@@ -137,13 +138,18 @@ export default function ProductionsPage() {
     filterForm.resetFields();
   };
 
-  const isFilterActive = Object.values(filters).some(
-    (value) => value !== undefined && value !== null && value !== ""
-  );
+  const isFilterActive =
+    Object.values(filters).some((value) => value !== undefined && value !== null && value !== "") ||
+    Boolean(searchTerm) ||
+    Boolean(sortBy);
 
   const handleResetFilter = () => {
     setFilters({});
+    setSearchTerm("");
+    setSortBy(undefined);
+    setSortDescending(true);
     setPageNumber(1);
+    setSearchResetKey((k) => k + 1);
   };
 
   const columns = [
@@ -199,6 +205,7 @@ export default function ProductionsPage() {
           <Row gutter={8}>
             <Col>
               <Input.Search
+                key={searchResetKey}
                 placeholder="Search Production"
                 style={{ width: 280 }}
                 allowClear

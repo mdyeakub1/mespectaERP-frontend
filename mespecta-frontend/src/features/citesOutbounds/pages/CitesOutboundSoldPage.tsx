@@ -103,6 +103,7 @@ export default function CitesOutboundSoldPage() {
   const [exportingPdf, setExportingPdf]       = useState(false);
   const [sortBy, setSortBy]                   = useState<string | undefined>(undefined);
   const [sortDescending, setSortDescending]   = useState(true);
+  const [searchResetKey, setSearchResetKey]   = useState(0);
 
   // ================= FETCH =================
   useEffect(() => {
@@ -153,11 +154,19 @@ export default function CitesOutboundSoldPage() {
     filterForm.resetFields();
   };
 
-  const handleResetFilter = () => { setFilters({}); setPageNumber(1); };
+  const handleResetFilter = () => {
+    setFilters({});
+    setSearchText("");
+    setSortBy(undefined);
+    setSortDescending(true);
+    setPageNumber(1);
+    setSearchResetKey((k) => k + 1);
+  };
 
-  const isFilterActive = Object.values(filters).some(
-    (v) => v !== undefined && v !== null && v !== ""
-  );
+  const isFilterActive =
+    Object.values(filters).some((v) => v !== undefined && v !== null && v !== "") ||
+    Boolean(searchText) ||
+    Boolean(sortBy);
 
   // ================= COLUMNS =================
   const orderedColumns = columnOrder
@@ -251,6 +260,7 @@ export default function CitesOutboundSoldPage() {
         <Col>
           <Space>
             <Input.Search
+              key={searchResetKey}
               placeholder="Search sold records"
               allowClear
               enterButton={<Button>Search</Button>}

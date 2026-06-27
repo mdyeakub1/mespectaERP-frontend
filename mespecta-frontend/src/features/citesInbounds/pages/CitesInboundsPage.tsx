@@ -46,6 +46,7 @@ export default function CitesInboundsPage() {
   const [filters, setFilters]                 = useState<any>({});
   const [sortBy, setSortBy]                   = useState<string | undefined>(undefined);
   const [sortDescending, setSortDescending]   = useState(true);
+  const [searchResetKey, setSearchResetKey]   = useState(0);
 
   // ================= FETCH =================
   useEffect(() => {
@@ -115,9 +116,10 @@ useEffect(() => {
     filterForm.resetFields();
   };
 
-  const isFilterActive = Object.values(filters).some(
-    (value) => value !== undefined && value !== null && value !== ""
-  );
+  const isFilterActive =
+    Object.values(filters).some((value) => value !== undefined && value !== null && value !== "") ||
+    Boolean(searchText) ||
+    Boolean(sortBy);
 
   // ================= EXPORT =================
   const [exportingExcel, setExportingExcel] = useState(false);
@@ -159,7 +161,11 @@ useEffect(() => {
 
   const handleResetFilter = () => {
     setFilters({});
+    setSearchText("");
+    setSortBy(undefined);
+    setSortDescending(true);
     setPageNumber(1);
+    setSearchResetKey((k) => k + 1);
   };
 
   const columns = [
@@ -246,6 +252,7 @@ useEffect(() => {
         <Col>
           <Space>
             <Input.Search
+              key={searchResetKey}
               placeholder="Search CITES"
               allowClear
               enterButton={<Button>Search</Button>}
