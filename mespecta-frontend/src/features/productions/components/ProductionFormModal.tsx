@@ -118,12 +118,18 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
       });
 
       if (initialData.productId) {
-        getProductById(initialData.productId).then(setSelectedProduct).catch(() => {});
+        getProductById(initialData.productId)
+          .then((product) => {
+            setSelectedProduct(product);
+            setProductOptions([product]);
+          })
+          .catch(() => {});
       }
     } else if (open && !initialData) {
       form.resetFields();
       setSelectedInbound(null);
       setSelectedProduct(null);
+      setProductOptions([]);
       setCitesSearchValue("");
     }
   }, [open, initialData, form]);
