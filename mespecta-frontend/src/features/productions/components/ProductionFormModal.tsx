@@ -143,7 +143,7 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
   const fetchCitesInbounds = async (search?: string) => {
     try {
       setSearchingCites(true);
-      const res = await api.get("/cites-inbounds", { params: { search, pageSize: 20 } });
+      const res = await api.get("/cites-inbounds", { params: { search, pageSize: 500 } });
       const items = res.data?.data?.items ?? res.data?.data ?? [];
       const merged =
         selectedInbound && !items.some((i: any) => i.citesInboundId === selectedInbound.citesInboundId)
@@ -175,7 +175,7 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
   const fetchProducts = async (search?: string) => {
     try {
       setSearchingProducts(true);
-      const res = await api.get("/products", { params: { search, pageSize: 20 } });
+      const res = await api.get("/products", { params: { search, pageSize: 500 } });
       const items = res.data?.data?.items ?? res.data?.data ?? [];
       const merged =
         selectedProduct && !items.some((i: any) => i.productId === selectedProduct.productId)
