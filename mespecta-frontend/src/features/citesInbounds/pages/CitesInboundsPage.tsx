@@ -269,7 +269,7 @@ useEffect(() => {
 
             {isFilterActive && (
               <Button danger onClick={handleResetFilter}>
-                Reset Filter
+                Reset
               </Button>
             )}
 

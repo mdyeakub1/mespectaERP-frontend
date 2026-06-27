@@ -271,7 +271,7 @@ export default function CitesOutboundSoldPage() {
               Filter
             </Button>
             {isFilterActive && (
-              <Button danger onClick={handleResetFilter}>Reset Filter</Button>
+              <Button danger onClick={handleResetFilter}>Reset</Button>
             )}
             <Select
               placeholder="Sort By"

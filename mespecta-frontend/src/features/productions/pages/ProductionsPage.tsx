@@ -226,7 +226,7 @@ export default function ProductionsPage() {
             {isFilterActive && (
               <Col>
                 <Button danger onClick={handleResetFilter}>
-                  Reset Filter
+                  Reset
                 </Button>
               </Col>
             )}

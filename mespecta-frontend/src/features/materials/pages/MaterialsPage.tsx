@@ -44,6 +44,7 @@ const MaterialsPage = () => {
   const [filters, setFilters]               = useState<any>({});
   const [sortBy, setSortBy]                 = useState<string | undefined>(undefined);
   const [sortDescending, setSortDescending] = useState(true);
+  const [searchResetKey, setSearchResetKey] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] =
@@ -141,6 +142,21 @@ const MaterialsPage = () => {
     }
   };
 
+  /* ================= RESET ================= */
+  const isFilterActive =
+    Object.values(filters).some((v) => v !== undefined && v !== null && v !== "") ||
+    Boolean(searchText) ||
+    Boolean(sortBy);
+
+  const handleReset = () => {
+    setFilters({});
+    setSearchText("");
+    setSortBy(undefined);
+    setSortDescending(true);
+    setPageNumber(1);
+    setSearchResetKey((k) => k + 1);
+  };
+
   /* ================= COLUMNS ================= */
   const columns = [
     {
@@ -194,6 +210,7 @@ const MaterialsPage = () => {
         <Col>
           <Space>
             <Input.Search
+              key={searchResetKey}
               placeholder="Search material..."
               style={{ width: 250 }}
               allowClear
@@ -208,6 +225,7 @@ const MaterialsPage = () => {
               placeholder="Category"
               allowClear
               style={{ width: 180 }}
+              value={filters.categoryId}
               onChange={(value) => {
                 setPageNumber(1);
                 setFilters((prev: any) => ({
@@ -250,6 +268,11 @@ const MaterialsPage = () => {
               />
             )}
 
+            {isFilterActive && (
+              <Button danger onClick={handleReset}>
+                Reset
+              </Button>
+            )}
           </Space>
         </Col>
 
