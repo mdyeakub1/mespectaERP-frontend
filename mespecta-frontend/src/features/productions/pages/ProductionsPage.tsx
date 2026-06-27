@@ -223,14 +223,6 @@ export default function ProductionsPage() {
               </Button>
             </Col>
 
-            {isFilterActive && (
-              <Col>
-                <Button danger onClick={handleResetFilter}>
-                  Reset
-                </Button>
-              </Col>
-            )}
-
             <Col>
               <Select
                 placeholder="Sort By"
@@ -260,6 +252,14 @@ export default function ProductionsPage() {
                     { value: false, label: "Ascending" },
                   ]}
                 />
+              </Col>
+            )}
+
+            {isFilterActive && (
+              <Col>
+                <Button danger onClick={handleResetFilter}>
+                  Reset
+                </Button>
               </Col>
             )}
           </Row>

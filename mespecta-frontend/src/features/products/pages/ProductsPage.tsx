@@ -258,12 +258,6 @@ useEffect(() => {
               Filter
             </Button>
 
-            {isFilterActive && (
-              <Button danger onClick={handleResetFilter}>
-                Reset
-              </Button>
-            )}
-
             <Select
               placeholder="Sort By"
               allowClear
@@ -291,6 +285,12 @@ useEffect(() => {
                   { value: false, label: "Ascending" },
                 ]}
               />
+            )}
+
+            {isFilterActive && (
+              <Button danger onClick={handleResetFilter}>
+                Reset
+              </Button>
             )}
           </Space>
         </Col>

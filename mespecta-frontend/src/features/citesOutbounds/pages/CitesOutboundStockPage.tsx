@@ -313,9 +313,6 @@ export default function CitesOutboundStockPage() {
             <Button icon={<FilterOutlined />} onClick={() => setFilterModalOpen(true)}>
               Filter
             </Button>
-            {isFilterActive && (
-              <Button danger onClick={handleResetFilter}>Reset</Button>
-            )}
             <Select
               placeholder="Sort By"
               allowClear
@@ -340,6 +337,9 @@ export default function CitesOutboundStockPage() {
                   { value: false, label: "Ascending" },
                 ]}
               />
+            )}
+            {isFilterActive && (
+              <Button danger onClick={handleResetFilter}>Reset</Button>
             )}
           </Space>
         </Col>

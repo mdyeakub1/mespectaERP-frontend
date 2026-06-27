@@ -270,9 +270,6 @@ export default function CitesOutboundSoldPage() {
             <Button icon={<FilterOutlined />} onClick={() => setFilterModalOpen(true)}>
               Filter
             </Button>
-            {isFilterActive && (
-              <Button danger onClick={handleResetFilter}>Reset</Button>
-            )}
             <Select
               placeholder="Sort By"
               allowClear
@@ -297,6 +294,9 @@ export default function CitesOutboundSoldPage() {
                   { value: false, label: "Ascending" },
                 ]}
               />
+            )}
+            {isFilterActive && (
+              <Button danger onClick={handleResetFilter}>Reset</Button>
             )}
           </Space>
         </Col>
