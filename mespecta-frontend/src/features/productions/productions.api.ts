@@ -38,3 +38,8 @@ export const startProduction = async (data: any) => {
 
   return response.data;
 };
+
+export const deleteProduction = async (id: number | string) => {
+  const response = await api.delete(`/productions/${id}`);
+  return response.data;
+};

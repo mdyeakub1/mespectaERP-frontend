@@ -10,15 +10,20 @@ import {
   Tag,
   Table,
   Tabs,
+  Modal,
+  Space,
+  message,
 } from "antd";
 import {
   ArrowLeftOutlined,
   PrinterOutlined,
   FileTextOutlined,
   HistoryOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import api from "../../../services/api";
 import { formatHours } from "../../../utils/formatHours";
+import { deleteProduction } from "../productions.api";
 
 const { Text } = Typography;
 
@@ -57,6 +62,8 @@ export default function ProductionDetailsPage() {
   const [loading, setLoading]     = useState(false);
   const [qrSrc, setQrSrc]         = useState<string | null>(null);
   const [qrLoading, setQrLoading] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting]     = useState(false);
 
   useEffect(() => { fetchDetails(); }, [id]);
   useEffect(() => {
@@ -80,6 +87,21 @@ export default function ProductionDetailsPage() {
       setQrSrc(URL.createObjectURL(res.data));
     } catch { setQrSrc(null); }
     finally { setQrLoading(false); }
+  };
+
+  const handleDelete = async () => {
+    if (!id) return;
+    try {
+      setDeleting(true);
+      await deleteProduction(id);
+      message.success("Production deleted");
+      navigate(-1);
+    } catch {
+      // interceptor handles toast
+    } finally {
+      setDeleting(false);
+      setDeleteOpen(false);
+    }
   };
 
   const handlePrintQR = () => {
@@ -123,6 +145,13 @@ export default function ProductionDetailsPage() {
           <Card style={{ borderRadius: 12 }}>
             <Tabs
               defaultActiveKey="details"
+              tabBarExtraContent={
+                <Space>
+                  <Button danger icon={<DeleteOutlined />} onClick={() => setDeleteOpen(true)}>
+                    Delete
+                  </Button>
+                </Space>
+              }
               items={[
                 {
                   key: "details",
@@ -211,6 +240,19 @@ export default function ProductionDetailsPage() {
         </Col>
 
       </Row>
+
+      <Modal
+        title="Delete Production"
+        open={deleteOpen}
+        onOk={handleDelete}
+        onCancel={() => setDeleteOpen(false)}
+        okText="Delete"
+        okButtonProps={{ danger: true, loading: deleting }}
+        destroyOnHidden
+      >
+        Are you sure you want to delete production{" "}
+        <strong>{data?.outboundSerialNumber || `#${id}`}</strong>? This action cannot be undone.
+      </Modal>
     </div>
   );
 }
