@@ -154,14 +154,10 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
   };
 
   /* ── Product search ── */
-  const handleProductSearch = async (value: string) => {
-    if (!value) {
-      setProductOptions([]);
-      return;
-    }
+  const fetchProducts = async (search?: string) => {
     try {
       setSearchingProducts(true);
-      const res = await api.get("/products", { params: { search: value, pageSize: 10 } });
+      const res = await api.get("/products", { params: { search, pageSize: 20 } });
       const items = res.data?.data?.items ?? res.data?.data ?? [];
       setProductOptions(items);
     } catch {
@@ -169,6 +165,14 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
     } finally {
       setSearchingProducts(false);
     }
+  };
+
+  const handleProductSearch = (value: string) => {
+    fetchProducts(value || undefined);
+  };
+
+  const handleProductDropdownOpen = (isOpen: boolean) => {
+    if (isOpen && productOptions.length === 0) fetchProducts();
   };
 
   const handleProductSelect = async (value: number) => {
@@ -284,6 +288,7 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
             loading={searchingProducts}
             onSearch={handleProductSearch}
             onChange={handleProductSelect}
+            onOpenChange={handleProductDropdownOpen}
             options={productOptions.map((p) => ({
               value: p.productId,
               label: p.productCode,
