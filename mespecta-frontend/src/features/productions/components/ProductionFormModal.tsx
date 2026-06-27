@@ -43,6 +43,7 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
   const [selectedInbound, setSelectedInbound] = useState<any>(null);
 
   const [productOptions, setProductOptions] = useState<any[]>([]);
+  const [productListLoaded, setProductListLoaded] = useState(false);
   const [searchingProducts, setSearchingProducts] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
@@ -117,6 +118,8 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
         quantityReceived: initialData.quantityReceived,
       });
 
+      setProductListLoaded(false);
+
       if (initialData.productId) {
         getProductById(initialData.productId)
           .then((product) => {
@@ -130,6 +133,7 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
       setSelectedInbound(null);
       setSelectedProduct(null);
       setProductOptions([]);
+      setProductListLoaded(false);
       setCitesSearchValue("");
     }
   }, [open, initialData, form]);
@@ -159,7 +163,12 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
       setSearchingProducts(true);
       const res = await api.get("/products", { params: { search, pageSize: 20 } });
       const items = res.data?.data?.items ?? res.data?.data ?? [];
-      setProductOptions(items);
+      const merged =
+        selectedProduct && !items.some((i: any) => i.productId === selectedProduct.productId)
+          ? [selectedProduct, ...items]
+          : items;
+      setProductOptions(merged);
+      setProductListLoaded(true);
     } catch {
       setProductOptions([]);
     } finally {
@@ -172,7 +181,7 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
   };
 
   const handleProductDropdownOpen = (isOpen: boolean) => {
-    if (isOpen && productOptions.length === 0) fetchProducts();
+    if (isOpen && !productListLoaded) fetchProducts();
   };
 
   const handleProductSelect = async (value: number) => {
