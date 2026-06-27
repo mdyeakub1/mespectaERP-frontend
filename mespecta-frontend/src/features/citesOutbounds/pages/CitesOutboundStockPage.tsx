@@ -206,6 +206,7 @@ export default function CitesOutboundStockPage() {
       key: "_actions",
       title: "",
       align: "right" as const,
+      fixed: "right" as const,
       render: (_: any, record: CitesOutboundStockItem) => (
         <Space>
           {!record.isSold && (

@@ -220,6 +220,7 @@ useEffect(() => {
     {
       title: "",
       align: "right" as const,
+      fixed: "right" as const,
       render: (_: any, record: any) => (
         <Button
           type="link"
@@ -329,6 +330,7 @@ useEffect(() => {
         columns={columns}
         dataSource={items}
         loading={loading}
+        scroll={{ x: "max-content" }}
         pagination={{
           current: pageNumber,
           pageSize,

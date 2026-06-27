@@ -170,6 +170,7 @@ export default function CitesOutboundSoldPage() {
       key: "_actions",
       title: "",
       align: "right" as const,
+      fixed: "right" as const,
       render: (_: any, record: CitesOutboundSoldItem) => (
         <Button type="link" onClick={() => navigate(`/cites-outbounds/sold/${record.finishedProductId}`)}>
           Details
