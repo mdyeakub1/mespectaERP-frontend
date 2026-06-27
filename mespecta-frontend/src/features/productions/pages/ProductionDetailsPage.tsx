@@ -20,10 +20,12 @@ import {
   FileTextOutlined,
   HistoryOutlined,
   DeleteOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import api from "../../../services/api";
 import { formatHours } from "../../../utils/formatHours";
 import { deleteProduction } from "../productions.api";
+import ProductionFormModal from "../components/ProductionFormModal";
 
 const { Text } = Typography;
 
@@ -64,6 +66,7 @@ export default function ProductionDetailsPage() {
   const [qrLoading, setQrLoading] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting]     = useState(false);
+  const [editOpen, setEditOpen]     = useState(false);
 
   useEffect(() => { fetchDetails(); }, [id]);
   useEffect(() => {
@@ -147,6 +150,9 @@ export default function ProductionDetailsPage() {
               defaultActiveKey="details"
               tabBarExtraContent={
                 <Space>
+                  <Button icon={<EditOutlined />} onClick={() => setEditOpen(true)}>
+                    Edit
+                  </Button>
                   <Button danger icon={<DeleteOutlined />} onClick={() => setDeleteOpen(true)}>
                     Delete
                   </Button>
@@ -253,6 +259,13 @@ export default function ProductionDetailsPage() {
         Are you sure you want to delete production{" "}
         <strong>{data?.outboundSerialNumber || `#${id}`}</strong>? This action cannot be undone.
       </Modal>
+
+      <ProductionFormModal
+        open={editOpen}
+        initialData={data}
+        onClose={() => setEditOpen(false)}
+        onSuccess={fetchDetails}
+      />
     </div>
   );
 }

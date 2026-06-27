@@ -15,11 +15,13 @@ import {
 import {
   PlusOutlined,
   FilterOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { fetchProductions } from "../productions.slice";
-import StartProductionModal from "../components/StartProductionModal";
+import { getProductionDetails } from "../productions.api";
+import ProductionFormModal from "../components/ProductionFormModal";
 import api from "../../../services/api";
 import { formatHours } from "../../../utils/formatHours";
 
@@ -57,6 +59,7 @@ export default function ProductionsPage() {
   const [filters, setFilters]                 = useState<any>({});
   const [filterOpen, setFilterOpen]           = useState(false);
   const [startOpen, setStartOpen]             = useState(false);
+  const [editingProduction, setEditingProduction] = useState<any>(null);
   const [sortBy, setSortBy]                   = useState<string | undefined>(undefined);
   const [sortDescending, setSortDescending]   = useState(true);
 
@@ -149,6 +152,27 @@ export default function ProductionsPage() {
     setPageNumber(1);
   };
 
+  const refetch = () => {
+    dispatch(
+      fetchProductions({
+        searchTerm,
+        pageNumber,
+        pageSize,
+        ...filters,
+        ...(sortBy ? { sortBy, sortDescending } : {}),
+      })
+    );
+  };
+
+  const openEdit = async (record: any) => {
+    try {
+      const details = await getProductionDetails(record.productionId);
+      setEditingProduction(details);
+    } catch {
+      // interceptor handles toast
+    }
+  };
+
   const columns = [
     { title: "Outbound Serial No.", dataIndex: "outboundSerialNumber" },
     { title: "Product", dataIndex: "productCode" },
@@ -180,12 +204,21 @@ export default function ProductionsPage() {
       title: "",
       align: "right" as const,
       render: (_: any, record: any) => (
-        <Button
-          type="link"
-          onClick={() => navigate(`/productions/${record.productionId}`)}
-        >
-          Details
-        </Button>
+        <>
+          <Button
+            type="link"
+            onClick={() => navigate(`/productions/${record.productionId}`)}
+          >
+            Details
+          </Button>
+          <Button
+            type="text"
+            size="small"
+            icon={<EditOutlined />}
+            style={{ color: "#1677ff" }}
+            onClick={() => openEdit(record)}
+          />
+        </>
       ),
     },
   ];
@@ -266,7 +299,6 @@ export default function ProductionsPage() {
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => setStartOpen(true)}
-            disabled
           >
             Start Production
           </Button>
@@ -370,10 +402,18 @@ export default function ProductionsPage() {
         </Form>
       </Modal>
 
-      {/* ================= START MODAL ================= */}
-      <StartProductionModal
+      {/* ================= START / EDIT MODAL ================= */}
+      <ProductionFormModal
         open={startOpen}
         onClose={() => setStartOpen(false)}
+        onSuccess={refetch}
+      />
+
+      <ProductionFormModal
+        open={Boolean(editingProduction)}
+        initialData={editingProduction}
+        onClose={() => setEditingProduction(null)}
+        onSuccess={refetch}
       />
     </Card>
   );
