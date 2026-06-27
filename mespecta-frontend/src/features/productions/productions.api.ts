@@ -53,8 +53,3 @@ export const getProductionDetails = async (id: number | string) => {
   const response = await api.get(`/productions/${id}/details`);
   return response.data.data;
 };
-
-export const searchCitesInboundByNumber = async (citesNumber: string) => {
-  const response = await api.post("/cites-inbounds/search-by-cites-number", { citesNumber });
-  return response.data?.data ?? response.data;
-};

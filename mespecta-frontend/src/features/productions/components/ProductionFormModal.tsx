@@ -16,11 +16,7 @@ import {
 } from "antd";
 import api from "../../../services/api";
 import { getProductById } from "../../products/products.api";
-import {
-  startProduction,
-  updateProduction,
-  searchCitesInboundByNumber,
-} from "../productions.api";
+import { startProduction, updateProduction } from "../productions.api";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -38,7 +34,8 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
 
   const [submitting, setSubmitting] = useState(false);
 
-  const [citesSearchValue, setCitesSearchValue] = useState("");
+  const [citesOptions, setCitesOptions] = useState<any[]>([]);
+  const [citesListLoaded, setCitesListLoaded] = useState(false);
   const [searchingCites, setSearchingCites] = useState(false);
   const [selectedInbound, setSelectedInbound] = useState<any>(null);
 
@@ -110,13 +107,16 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
         notes: initialData.notes,
       });
 
-      setSelectedInbound({
+      const inboundSeed = {
         citesInboundId: initialData.citesInboundId,
         citesNumber: initialData.citesNumber,
         leatherTypeName: initialData.leatherTypeName,
         colorName: initialData.colorName,
         quantityReceived: initialData.quantityReceived,
-      });
+      };
+      setSelectedInbound(inboundSeed);
+      setCitesOptions([inboundSeed]);
+      setCitesListLoaded(false);
 
       setProductListLoaded(false);
 
@@ -134,27 +134,41 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
       setSelectedProduct(null);
       setProductOptions([]);
       setProductListLoaded(false);
-      setCitesSearchValue("");
+      setCitesOptions([]);
+      setCitesListLoaded(false);
     }
   }, [open, initialData, form]);
 
-  /* ── CITES search ── */
-  const handleCitesSearch = async () => {
-    if (!citesSearchValue.trim()) return;
+  /* ── CITES Inbound search ── */
+  const fetchCitesInbounds = async (search?: string) => {
     try {
       setSearchingCites(true);
-      const result = await searchCitesInboundByNumber(citesSearchValue.trim());
-      if (!result) {
-        message.error("CITES Inbound not found");
-        return;
-      }
-      setSelectedInbound(result);
-      form.setFieldsValue({ citesInboundId: result.citesInboundId });
+      const res = await api.get("/cites-inbounds", { params: { search, pageSize: 20 } });
+      const items = res.data?.data?.items ?? res.data?.data ?? [];
+      const merged =
+        selectedInbound && !items.some((i: any) => i.citesInboundId === selectedInbound.citesInboundId)
+          ? [selectedInbound, ...items]
+          : items;
+      setCitesOptions(merged);
+      setCitesListLoaded(true);
     } catch {
-      message.error("CITES Inbound not found");
+      setCitesOptions([]);
     } finally {
       setSearchingCites(false);
     }
+  };
+
+  const handleCitesSearch = (value: string) => {
+    fetchCitesInbounds(value || undefined);
+  };
+
+  const handleCitesDropdownOpen = (isOpen: boolean) => {
+    if (isOpen && !citesListLoaded) fetchCitesInbounds();
+  };
+
+  const handleCitesSelect = (value: number) => {
+    const found = citesOptions.find((i) => i.citesInboundId === value);
+    setSelectedInbound(found ?? null);
   };
 
   /* ── Product search ── */
@@ -248,19 +262,24 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
     >
       <Form layout="vertical" form={form}>
         {/* ── CITES Inbound ── */}
-        <Form.Item label="Search CITES Inbound" required>
-          <Input.Search
-            placeholder="Enter CITES Number (e.g. DE-E-01469/17)"
-            value={citesSearchValue}
-            onChange={(e) => setCitesSearchValue(e.target.value)}
-            onSearch={handleCitesSearch}
+        <Form.Item
+          label="CITES Inbound"
+          name="citesInboundId"
+          rules={[{ required: true, message: "Select a CITES Inbound" }]}
+        >
+          <Select
+            showSearch
+            placeholder="Search CITES Inbound by number"
+            filterOption={false}
             loading={searchingCites}
-            enterButton="Search"
+            onSearch={handleCitesSearch}
+            onChange={handleCitesSelect}
+            onOpenChange={handleCitesDropdownOpen}
+            options={citesOptions.map((i) => ({
+              value: i.citesInboundId,
+              label: i.citesNumber,
+            }))}
           />
-        </Form.Item>
-
-        <Form.Item name="citesInboundId" rules={[{ required: true, message: "Select a CITES Inbound" }]} hidden>
-          <Input />
         </Form.Item>
 
         {selectedInbound && (
