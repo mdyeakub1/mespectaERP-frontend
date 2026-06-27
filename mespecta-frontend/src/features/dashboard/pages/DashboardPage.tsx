@@ -308,12 +308,12 @@ export default function DashboardPage() {
     pointerEvents: refetching ? ("none" as const) : ("auto" as const),
   };
 
-  const leatherChartData = (data?.cites.topLeatherTypes ?? []).map((l) => {
-    const skins = Number(l.totalSkins) || 0;
+  const leatherChartData = (data?.cites.leatherTypes ?? []).map((l) => {
+    const count = Number(l.inboundCount) || 0;
     return {
       label: l.leatherTypeName,
-      value: skins,
-      display: formatNumberIt(skins),
+      value: count,
+      display: formatNumberIt(count),
     };
   });
 

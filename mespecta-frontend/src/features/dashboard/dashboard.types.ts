@@ -1,9 +1,8 @@
 export type DashboardPeriod = "Daily" | "Weekly" | "Monthly";
 
-export interface TopLeatherType {
+export interface LeatherTypeCount {
   leatherTypeName: string;
   inboundCount: number;
-  totalSkins: number;
 }
 
 export interface CitesSummary {
@@ -11,7 +10,7 @@ export interface CitesSummary {
   totalSkins: number;
   inboundsInPeriod: number;
   skinsInPeriod: number;
-  topLeatherTypes: TopLeatherType[];
+  leatherTypes: LeatherTypeCount[];
 }
 
 export interface ProductionsSummary {
