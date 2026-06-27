@@ -273,14 +273,14 @@ export default function ProductionFormModal({ open, onClose, onSuccess, initialD
         <Form.Item label="Product" name="productId" rules={[{ required: true, message: "Select a product" }]}>
           <Select
             showSearch
-            placeholder="Search product by code or description"
+            placeholder="Search product by code"
             filterOption={false}
             loading={searchingProducts}
             onSearch={handleProductSearch}
             onChange={handleProductSelect}
             options={productOptions.map((p) => ({
               value: p.productId,
-              label: `${p.productCode} — ${p.description ?? ""}`,
+              label: p.productCode,
             }))}
           />
         </Form.Item>
